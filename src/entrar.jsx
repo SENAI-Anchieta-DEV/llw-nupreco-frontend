@@ -1,69 +1,79 @@
 import React, { useState } from 'react';
+// Importações conforme o padrão do material MUI_React2
 import { Box, Button, Typography, Grid, TextField, InputAdornment, IconButton, Divider, CssBaseline, CircularProgress } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import LanguageIcon from '@mui/icons-material/Language';
 
-function Cadastro({ aoVoltar, aoSalvarCadastro }) {
+function Login({ aoVoltar, onLogin, dadosParaConferir }) {
   const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [carregando, setCarregando] = useState(false);
   
-  // ESTADOS PARA SALVAR OS DADOS
-  const [nome, setNome] = useState("");
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [carregando, setCarregando] = useState(false); // Para o efeito de carregar
+  // Estados para capturar o que o usuário digita
+  const [emailDigitado, setEmailDigitado] = useState("");
+  const [senhaDigitada, setSenhaDigitada] = useState("");
 
-  const lidarComCadastro = () => {
-    if (nome && email && senha) {
+  // Função de validação com efeito de carregamento
+  const lidarComLogin = () => {
+    if (!dadosParaConferir) {
+      alert("Nenhum usuário cadastrado no sistema!");
+      return;
+    }
+
+    if (emailDigitado === dadosParaConferir.email && senhaDigitada === dadosParaConferir.senha) {
       setCarregando(true);
-      
-      // Simula um carregamento de 1.5 segundos conforme pedido
+      // Simula o carregamento antes de entrar na Home (padrão de UX do manual)
       setTimeout(() => {
         setCarregando(false);
-        // Envia os dados para o App.js
-        aoSalvarCadastro({ nome, email, senha });
+        onLogin(); 
       }, 1500);
     } else {
-      alert("Por favor, preencha todos os campos!");
+      alert("E-mail ou senha incorretos! Tente novamente.");
     }
+  };
+
+  // Função para o link de recuperação de senha
+  const recuperarSenha = () => {
+    alert("Um link de recuperação foi enviado para o seu e-mail.");
   };
 
   return (
     <>
       <CssBaseline />
-      <Grid container sx={{ height: '100vh', width: '100vw', m: 0, p: 0 }}>
+      <Grid container sx={{ minHeight: '100vh', width: '100vw', m: 0, p: 0 }}>
         
-        {/* LADO ESQUERDO: BRANCO */}
+        {/* LADO ESQUERDO: FORMULÁRIO */}
         <Grid item xs={12} md={6} sx={{ 
           display: 'flex', flexDirection: 'column', justifyContent: 'space-between', 
           alignItems: 'center', p: 6, bgcolor: 'white' 
         }}>
           
-          <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100%', maxWidth: '400px' }}>
+          <Box sx={{ 
+            flexGrow: 1, display: 'flex', flexDirection: 'column', 
+            justifyContent: 'center', alignItems: 'center', width: '100%', maxWidth: '400px' 
+          }}>
             
             <Typography variant="h3" sx={{ color: '#128654', fontWeight: 'bold', mb: 1 }}>
               NuPreço
             </Typography>
             <Typography variant="body2" sx={{ color: '#999', mb: 4, textAlign: 'center' }}>
-              Crie sua conta para começar a gerenciar seus preços
+              Faça login para continuar acessando sua conta
             </Typography>
 
             <TextField 
-              fullWidth label="NOME" variant="outlined" 
-              onChange={(e) => setNome(e.target.value)}
-              sx={{ mb: 2, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#128654' } } }} 
-            />
-            
-            <TextField 
               fullWidth label="E-MAIL" variant="outlined" 
-              onChange={(e) => setEmail(e.target.value)}
+              value={emailDigitado}
+              onChange={(e) => setEmailDigitado(e.target.value)}
               sx={{ mb: 2, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#128654' } } }} 
             />
 
             <TextField 
-              fullWidth label="SENHA" type={mostrarSenha ? 'text' : 'password'} variant="outlined"
-              onChange={(e) => setSenha(e.target.value)}
-              sx={{ mb: 3, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#128654' } } }}
+              fullWidth label="SENHA" 
+              type={mostrarSenha ? 'text' : 'password'} 
+              variant="outlined"
+              value={senhaDigitada}
+              onChange={(e) => setSenhaDigitada(e.target.value)}
+              sx={{ mb: 1, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#128654' } } }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -75,14 +85,27 @@ function Cadastro({ aoVoltar, aoSalvarCadastro }) {
               }}
             />
 
+            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
+                <Typography 
+                  variant="caption" 
+                  onClick={recuperarSenha}
+                  sx={{ color: '#128654', cursor: 'pointer', fontWeight: 'bold', '&:hover': { textDecoration: 'underline' } }}
+                >
+                  Esqueceu a senha?
+                </Typography>
+            </Box>
+
             <Button 
               variant="contained" 
               fullWidth 
-              onClick={lidarComCadastro}
-              disabled={carregando} // Desativa enquanto carrega
-              sx={{ bgcolor: '#128654', '&:hover': { bgcolor: '#0e6b43' }, py: 1.5, textTransform: 'none', fontWeight: 'bold', borderRadius: '8px' }}
+              onClick={lidarComLogin}
+              disabled={carregando}
+              sx={{ 
+                bgcolor: '#128654', '&:hover': { bgcolor: '#0e6b43' }, 
+                py: 1.5, textTransform: 'none', fontWeight: 'bold', borderRadius: '8px' 
+              }}
             >
-              {carregando ? <CircularProgress size={24} color="inherit" /> : "Criar nova conta"}
+              {carregando ? <CircularProgress size={24} color="inherit" /> : "Entrar"}
             </Button>
 
             <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', my: 3 }}>
@@ -92,15 +115,16 @@ function Cadastro({ aoVoltar, aoSalvarCadastro }) {
             </Box>
 
             <Button 
-              variant="outlined" fullWidth 
+              variant="outlined" 
+              fullWidth 
               startIcon={<img src="https://www.google.com/favicon.ico" width="20" alt="google" />} 
               sx={{ color: '#15181E', borderColor: '#DDD', py: 1.2, textTransform: 'none', borderRadius: '8px' }}
             >
-              Continue with Google
+              Entrar com Google
             </Button>
 
             <Button onClick={aoVoltar} sx={{ mt: 2, color: '#128654', textTransform: 'none', fontWeight: 'bold' }}>
-              Já tem uma conta? Entrar
+              Não tem uma conta? Cadastre-se
             </Button>
           </Box>
 
@@ -112,7 +136,7 @@ function Cadastro({ aoVoltar, aoSalvarCadastro }) {
 
         {/* LADO DIREITO: VERDE */}
         <Grid item xs={0} md={6} sx={{ 
-          bgcolor: '#128654', display: { xs: 'none', md: 'flex' }, height: '100vh', m: 0, p: 0
+          bgcolor: '#128654', display: { xs: 'none', md: 'flex' }, minHeight: '100vh' 
         }} />
         
       </Grid>
@@ -120,4 +144,4 @@ function Cadastro({ aoVoltar, aoSalvarCadastro }) {
   );
 }
 
-export default Cadastro;
+export default Login;

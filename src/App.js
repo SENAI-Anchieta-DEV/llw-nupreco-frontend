@@ -1,66 +1,52 @@
-import React, { useState, useEffect } from 'react';
-import { ThemeProvider, CssBaseline } from '@mui/material';
-import { theme } from './theme'; // Importa o arquivo de cores que criamos
-import BemVindo from './BemVindo';
-import Cadastro from './Cadastro';
+import { useState } from "react";
+import BemVindo from "./BemVindo";
+import Cadastro from "./Cadastro";
+import Login from "./entrar"; 
+import Inicio from "./inicio";
 
 function App() {
-  // Estado para controlar qual tela mostrar
-  const [telaAtual, setTelaAtual] = useState('bem-vindo');
-  const [isPrimeiroAcesso, setIsPrimeiroAcesso] = useState(true);
+  const [telaAtiva, setTelaAtiva] = useState("bemvindo");
+  const [logado, setLogado] = useState(false);
+  
+  // Estado para guardar os dados que o usuário criou no cadastro
+  const [usuarioCadastrado, setUsuarioCadastrado] = useState(null);
 
-  useEffect(() => {
-    // Verifica se já existe um gestor cadastrado no sistema
-    const gestorConfigurado = localStorage.getItem('gestor_configurado');
-    if (gestorConfigurado === 'true') {
-      setIsPrimeiroAcesso(false);
-    }
-  }, []);
+  // LÓGICA DE NAVEGAÇÃO
+  if (!logado) {
+    return (
+      <>
+        {telaAtiva === "bemvindo" && (
+          <BemVindo 
+            aoClicarCriar={() => setTelaAtiva("cadastro")} 
+            aoClicarEntrar={() => setTelaAtiva("login")} 
+          />
+        )}
 
-  // Função chamada pelo botão "Criar nova conta" na tela de Bem-Vindo
-  const gerenciarFluxo = () => {
-    if (isPrimeiroAcesso) {
-      // Se for a primeira vez, vai para o cadastro do gestor
-      setTelaAtual('cadastro');
-    } else {
-      // Se já houver gestor, o sistema deve seguir para o Login
-      setTelaAtual('login');
-    }
-  };
+        {telaAtiva === "cadastro" && (
+          <Cadastro 
+            aoVoltar={() => setTelaAtiva("bemvindo")} 
+            // Quando o botão 'Criar conta' for clicado e carregar:
+            aoSalvarCadastro={(dados) => {
+              setUsuarioCadastrado(dados); // Salva Nome, E-mail e Senha
+              setLogado(true); // LOGA AUTOMATICAMENTE E VAI PARA O INICIO
+            }}
+          />
+        )}
 
-  // Função chamada após concluir o cadastro do Gestor
-  const concluirCadastroGestor = () => {
-    localStorage.setItem('gestor_configurado', 'true');
-    setIsPrimeiroAcesso(false);
-    setTelaAtual('home'); // Redireciona para a Home do Gestor
-  };
+        {telaAtiva === "login" && (
+          <Login 
+            aoVoltar={() => setTelaAtiva("bemvindo")} 
+            dadosParaConferir={usuarioCadastrado}
+            onLogin={() => setLogado(true)} 
+          />
+        )}
+      </>
+    );
+  }
 
-  return (
-    <ThemeProvider theme={theme}>
-      {/* O CssBaseline reseta o CSS para o padrão do Material UI */}
-      <CssBaseline />
-      
-      {telaAtual === 'bem-vindo' && (
-        <BemVindo aoClicarCriar={gerenciarFluxo} />
-      )}
-
-      {telaAtual === 'cadastro' && (
-        <Cadastro aoFinalizar={concluirCadastroGestor} />
-      )}
-
-      {telaAtual === 'login' && (
-        <div style={{ padding: '20px' }}>
-          <h2>Tela de Login (Próximo passo)</h2>
-        </div>
-      )}
-
-      {telaAtual === 'home' && (
-        <div style={{ padding: '20px' }}>
-          <h2>Bem-vindo, Gestor! (Área Logada)</h2>
-        </div>
-      )}
-    </ThemeProvider>
-  );
+  // TELA PRINCIPAL (SIDEBAR VERDE + CARDS)
+  // Só aparece se logado === true
+  return <Inicio onLogout={() => setLogado(false)} />;
 }
 
 export default App;
