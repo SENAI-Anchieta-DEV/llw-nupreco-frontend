@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Box, Typography, Card, IconButton, Stack, CssBaseline, 
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
-  Chip, Pagination 
+  Chip, Pagination, Drawer, List, ListItem, ListItemIcon, ListItemText 
 } from '@mui/material';
 
 import MenuIcon from '@mui/icons-material/Menu';
@@ -17,69 +17,84 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import DesktopWindowsIcon from '@mui/icons-material/DesktopWindowsOutlined';
 
 const VendaConsulta = ({ onBack, onLogout, vendas }) => {
-  
-  // 1. LÓGICA DE SOMA TOTAL (Corrigida para não multiplicar por 100)
+  // 1. ESTADO PARA O MENU
+  const [menuAberto, setMenuAberto] = useState(false);
+  const toggleMenu = () => setMenuAberto(!menuAberto);
+
+  // 2. LÓGICA DE SOMA TOTAL
   const totalVendido = vendas
     .filter(v => v.status === 'CONCLUIDA')
     .reduce((acc, v) => {
-      // Remove R$ e espaços em branco
       let valorLimpo = v.total.replace('R$', '').replace(/\s/g, '');
-
-      // Se o valor contiver VÍRGULA (ex: 16,00), removemos o ponto de milhar e trocamos a vírgula por ponto
       if (valorLimpo.includes(',')) {
         valorLimpo = valorLimpo.replace(/\./g, '').replace(',', '.');
       } 
-      // Se NÃO contiver vírgula mas contiver ponto (ex: 16.00 da sua imagem), 
-      // o JS já entende como decimal, então não removemos o ponto.
-      
       const numero = parseFloat(valorLimpo) || 0;
       return acc + numero;
     }, 0);
 
   const vendasConcluidas = vendas.filter(v => v.status === 'CONCLUIDA').length;
-  
-  const taxaCrescimento = vendas.length > 0 
-    ? ((vendasConcluidas / vendas.length) * 100).toFixed(0) 
-    : 0;
+  const taxaCrescimento = vendas.length > 0 ? ((vendasConcluidas / vendas.length) * 100).toFixed(0) : 0;
 
-  const sidebarIconStyle = { color: 'white', fontSize: '2.2rem' };
+  // Itens do Menu
+  const itensMenu = [
+    { text: 'INÍCIO', icon: <HomeIcon />, action: onBack },
+    { text: 'USUÁRIO', icon: <PersonIcon /> },
+    { text: 'VENDAS', icon: <AssessmentIcon /> },
+    { text: 'ESTOQUE', icon: <InventoryIcon />, action: onBack },
+    { text: 'CONTAS', icon: <WarningIcon /> },
+    { text: 'SAIR', icon: <LogoutIcon />, action: onLogout },
+  ];
 
   return (
     <Box sx={{ display: 'flex', bgcolor: '#F9F9F9', height: '100vh', width: '100vw', overflow: 'hidden' }}>
       <CssBaseline />
 
-      {/* SIDEBAR NUPREÇO */}
+      {/* MENU LATERAL EXPANSÍVEL (DRAWER) */}
+      <Drawer
+        anchor="left"
+        open={menuAberto}
+        onClose={toggleMenu}
+        PaperProps={{
+          sx: { width: 280, bgcolor: '#128654', color: 'white', pt: 2 }
+        }}
+      >
+        <Typography variant="h5" sx={{ p: 3, fontWeight: 'bold', textAlign: 'center' }}>NuPreço</Typography>
+        <List>
+          {itensMenu.map((item) => (
+            <ListItem button key={item.text} onClick={() => { item.action?.(); toggleMenu(); }} sx={{ py: 1.5 }}>
+              <ListItemIcon sx={{ color: 'white', minWidth: 50 }}>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} primaryTypographyProps={{ fontWeight: 'bold' }} />
+            </ListItem>
+          ))}
+        </List>
+      </Drawer>
+
+      {/* SIDEBAR NUPREÇO (FIXA E MINIMALISTA) */}
       <Box sx={{ width: 85, bgcolor: '#128654', display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3, height: '100vh', zIndex: 1200 }}>
-        <Stack spacing={4} alignItems="center">
-          <IconButton sx={{ color: 'white' }}><MenuIcon sx={{ fontSize: '2.8rem' }} /></IconButton>
-          <IconButton onClick={onBack}><HomeIcon sx={sidebarIconStyle} /></IconButton>
-          <IconButton><PersonIcon sx={sidebarIconStyle} /></IconButton>
-          <IconButton><AssessmentIcon sx={sidebarIconStyle} /></IconButton>
-          <IconButton onClick={onBack}><InventoryIcon sx={sidebarIconStyle} /></IconButton>
-          <IconButton><WarningIcon sx={sidebarIconStyle} /></IconButton>
-        </Stack>
-        <Box sx={{ flexGrow: 1 }} />
-        <IconButton onClick={onLogout} sx={{ mb: 2 }}><LogoutIcon sx={sidebarIconStyle} /></IconButton>
+        <IconButton onClick={toggleMenu} sx={{ color: 'white' }}>
+          <MenuIcon sx={{ fontSize: '2.8rem' }} />
+        </IconButton>
       </Box>
 
+      {/* CONTEÚDO PRINCIPAL */}
       <Box sx={{ flexGrow: 1, p: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <Typography variant="caption" sx={{ color: '#DDD', fontWeight: 'bold', mb: -2 }}>VENDA CONSULTA</Typography>
+        <Typography variant="caption" sx={{ color: '#AAA', fontWeight: 'bold', mb: -2, letterSpacing: 1 }}>
+          SISTEMA / VENDA CONSULTA
+        </Typography>
 
-        {/* CARDS COM O TOTAL CORRIGIDO (SOMA REAL) */}
+        {/* CARDS RESUMO */}
         <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center' }}>
           <Card sx={{ flex: 1, maxWidth: 350, p: 3, borderRadius: '25px', display: 'flex', alignItems: 'center', gap: 2, boxShadow: '0px 10px 30px rgba(0,0,0,0.03)', border: '1px solid #F0F0F0' }}>
             <Box sx={{ bgcolor: '#E8F5E9', p: 2, borderRadius: '50%', color: '#128654', display: 'flex' }}><GroupIcon /></Box>
             <Box>
-              <Typography variant="caption" color="textSecondary">Total vendido (Concluídas)</Typography>
+              <Typography variant="caption" color="textSecondary">Total vendido</Typography>
               <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#128654' }}>
-                {/* Formata para Moeda Brasileira corretamente */}
                 {totalVendido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               </Typography>
               <Stack direction="row" alignItems="center" spacing={0.5}>
                 <TrendingUpIcon sx={{ fontSize: 14, color: '#128654' }} />
-                <Typography variant="caption" sx={{ color: '#128654', fontWeight: 'bold' }}>
-                  {taxaCrescimento}% de conversão
-                </Typography>
+                <Typography variant="caption" sx={{ color: '#128654', fontWeight: 'bold' }}>{taxaCrescimento}% de conversão</Typography>
               </Stack>
             </Box>
           </Card>
@@ -103,7 +118,7 @@ const VendaConsulta = ({ onBack, onLogout, vendas }) => {
           </Card>
         </Box>
 
-        {/* TABELA DE VENDAS */}
+        {/* TABELA */}
         <Card sx={{ flexGrow: 1, borderRadius: '25px', p: 2, boxShadow: '0px 10px 30px rgba(0,0,0,0.03)', border: '1px solid #F0F0F0', display: 'flex', flexDirection: 'column' }}>
           <TableContainer sx={{ maxHeight: '50vh' }}>
             <Table stickyHeader>
@@ -137,7 +152,6 @@ const VendaConsulta = ({ onBack, onLogout, vendas }) => {
               </TableBody>
             </Table>
           </TableContainer>
-          <Box sx={{ flexGrow: 1 }} />
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
             <Pagination count={1} shape="rounded" color="primary" size="small" />
           </Box>

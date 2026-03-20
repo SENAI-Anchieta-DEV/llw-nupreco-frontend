@@ -1,66 +1,78 @@
-import React from 'react';
-import { Box, Typography, Card, IconButton, Stack, CssBaseline } from '@mui/material';
+import React, { useState } from 'react'; 
+import { Box, Typography, Card, IconButton, Stack, CssBaseline, Drawer, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 
 // Ícones da identidade visual NuPreço
 import MenuIcon from '@mui/icons-material/Menu';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
 import PersonIcon from '@mui/icons-material/PersonOutline';
-import AssessmentIcon from '@mui/icons-material/AssessmentOutlined'; // Vendas
-import StorefrontIcon from '@mui/icons-material/StorefrontOutlined'; // PVD
-import ReportProblemIcon from '@mui/icons-material/WarningAmber'; // Contas
-import InventoryIcon from '@mui/icons-material/AllInbox'; // Estoque
-import CategoryIcon from '@mui/icons-material/CategoryOutlined'; // Produtos
-import LogoutIcon from '@mui/icons-material/ExitToAppOutlined'; // Sair
+import AssessmentIcon from '@mui/icons-material/AssessmentOutlined'; 
+import StorefrontIcon from '@mui/icons-material/StorefrontOutlined'; 
+import ReportProblemIcon from '@mui/icons-material/WarningAmber'; 
+import InventoryIcon from '@mui/icons-material/AllInbox'; 
+import CategoryIcon from '@mui/icons-material/CategoryOutlined'; 
+import LogoutIcon from '@mui/icons-material/ExitToAppOutlined'; 
 
-// 1. ADICIONADA A PROP 'aoClicarEstoque' AQUI TAMBÉM
-const Inicio = ({ onLogout, aoClicarVendas, aoClicarPdv, aoClicarProdutos, aoClicarEstoque }) => {
+const Inicio = ({ onLogout, aoClicarVendas, aoClicarPdv, aoClicarProdutos, aoClicarEstoque, aoClicarContas, aoClicarUsuarios, notificacaoConta }) => {
   
-  // 2. VINCULADA A AÇÃO AO MÓDULO DE ESTOQUE
+  const [menuAberto, setMenuAberto] = useState(false);
+  const toggleMenu = () => setMenuAberto(!menuAberto);
+
   const modulos = [
+    { text: "INÍCIO", icon: <HomeIcon /> }, 
+    { text: "USUÁRIO", icon: <PersonIcon />, action: aoClicarUsuarios }, // Ação adicionada aqui
     { text: "VENDAS", icon: <AssessmentIcon />, action: aoClicarVendas },
     { text: "PVD RAPIDO", icon: <StorefrontIcon />, action: aoClicarPdv },
-    { text: "CONTAS", icon: <ReportProblemIcon /> },
-    { text: "ESTOQUE", icon: <InventoryIcon />, action: aoClicarEstoque }, // <--- AGORA VINCULADO
+    { text: "CONTAS", icon: <ReportProblemIcon />, action: aoClicarContas },
+    { text: "ESTOQUE", icon: <InventoryIcon />, action: aoClicarEstoque },
     { text: "PRODUTOS", icon: <CategoryIcon />, action: aoClicarProdutos },
     { text: "SAIR", icon: <LogoutIcon />, action: onLogout },
   ];
-
-  const sidebarIconStyle = { color: 'white', fontSize: { xs: '2.2rem', lg: '2.5rem' } };
 
   return (
     <Box sx={{ display: 'flex', bgcolor: '#F9F9F9', height: '100vh', width: '100vw', overflow: 'hidden' }}>
       <CssBaseline />
 
-      {/* SIDEBAR VERDE */}
+      {/* MENU LATERAL EXPANSÍVEL (DRAWER) */}
+      <Drawer
+        anchor="left"
+        open={menuAberto}
+        onClose={toggleMenu}
+        PaperProps={{
+          sx: { width: 280, bgcolor: '#128654', color: 'white', pt: 2 }
+        }}
+      >
+        <Typography variant="h5" sx={{ p: 3, fontWeight: 'bold', textAlign: 'center' }}>NuPreço</Typography>
+        <List>
+          {modulos.map((item) => (
+            <ListItem button key={item.text} onClick={() => { item.action?.(); toggleMenu(); }} sx={{ py: 2 }}>
+              <ListItemIcon sx={{ color: 'white', minWidth: 50 }}>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} primaryTypographyProps={{ fontWeight: 'bold' }} />
+            </ListItem>
+          ))}
+        </List>
+      </Drawer>
+
+      {/* SIDEBAR VERDE (FIXA) */}
       <Box sx={{ 
         width: { xs: 70, lg: 85 }, bgcolor: '#128654', display: 'flex', flexDirection: 'column', 
         alignItems: 'center', py: 3, height: '100vh', zIndex: 1200,
         borderTopRightRadius: '15px', borderBottomRightRadius: '15px'
       }}>
         <Stack spacing={{ xs: 2, lg: 4 }} alignItems="center">
-          <IconButton sx={{ color: 'white' }}><MenuIcon sx={{ fontSize: { xs: '2.5rem', lg: '2.8rem' } }} /></IconButton>
-          <IconButton><HomeIcon sx={sidebarIconStyle} /></IconButton>
-          <IconButton><PersonIcon sx={sidebarIconStyle} /></IconButton>
-          
-          <IconButton onClick={aoClicarVendas}><AssessmentIcon sx={sidebarIconStyle} /></IconButton>
-          {/* Sincronizando ícone de Estoque na Sidebar */}
-          <IconButton onClick={aoClicarEstoque}><InventoryIcon sx={sidebarIconStyle} /></IconButton> 
-          <IconButton onClick={aoClicarProdutos}><CategoryIcon sx={sidebarIconStyle} /></IconButton>
+          <IconButton onClick={toggleMenu} sx={{ color: 'white' }}>
+            <MenuIcon sx={{ fontSize: { xs: '2.5rem', lg: '2.8rem' } }} />
+          </IconButton>
         </Stack>
         <Box sx={{ flexGrow: 1 }} />
-        <IconButton onClick={onLogout} sx={{ mb: 2 }}>
-          <LogoutIcon sx={sidebarIconStyle} />
-        </IconButton>
       </Box>
 
       {/* ÁREA CENTRAL */}
       <Box sx={{ 
         flexGrow: 1, 
-        ml: { xs: '70px', lg: '85px' }, 
         px: { xs: 3, lg: 8 }, py: { xs: 2, lg: 4 },
         display: 'flex', flexDirection: 'column', 
         justifyContent: 'space-between',
-        height: '100vh', width: { xs: 'calc(100vw - 70px)', lg: 'calc(100vw - 85px)' }
+        height: '100vh'
       }}>
         
         {/* HEADER */}
@@ -88,14 +100,14 @@ const Inicio = ({ onLogout, aoClicarVendas, aoClicarPdv, aoClicarProdutos, aoCli
           </Typography>
         </Box>
 
-        {/* GRID DE CARDS */}
+        {/* GRID DE CARDS - Mantendo filtrado para não mostrar o card de Usuário no centro */}
         <Box sx={{ 
           width: '100%', maxWidth: '1100px', margin: '0 auto',
           display: 'grid', 
           gridTemplateColumns: { xs: 'repeat(1, 1fr)', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
           gap: { xs: 2, md: 4, lg: 6 }, maxHeight: '70vh'
         }}>
-          {modulos.map((item, index) => (
+          {modulos.filter(item => item.text !== 'INÍCIO' && item.text !== 'USUÁRIO' && item.text !== 'SAIR').map((item, index) => (
             <Card 
               key={index}
               onClick={item.action} 
@@ -135,9 +147,15 @@ const Inicio = ({ onLogout, aoClicarVendas, aoClicarPdv, aoClicarProdutos, aoCli
             color: '#128654', fontWeight: 'bold', fontSize: { xs: '0.65rem', sm: '0.75rem', lg: '0.9rem' },
             letterSpacing: { xs: 0.5, lg: 1.5 }
           }}>
-            <Box>CONTA DO DIA</Box>
-            <Box sx={{ textAlign: 'center' }}>VALOR</Box>
-            <Box sx={{ textAlign: 'right' }}>DATA</Box>
+            <Box>
+              {notificacaoConta ? notificacaoConta.fornecedor.toUpperCase() : "CONTA DO DIA"}
+            </Box>
+            <Box sx={{ textAlign: 'center' }}>
+              {notificacaoConta ? `R$ ${notificacaoConta.valor}` : "VALOR"}
+            </Box>
+            <Box sx={{ textAlign: 'right' }}>
+              {notificacaoConta ? notificacaoConta.dataVencimento : "DATA"}
+            </Box>
           </Box>
         </Box>
       </Box>
