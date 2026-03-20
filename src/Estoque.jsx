@@ -1,14 +1,17 @@
 import React from 'react';
 import { 
   Box, Typography, IconButton, CssBaseline, Table, TableBody, 
-  TableCell, TableContainer, TableHead, TableRow, Paper 
+  TableCell, TableContainer, TableHead, TableRow, Paper, Stack 
 } from '@mui/material';
 
+// Ícones
 import HomeIcon from '@mui/icons-material/HomeOutlined';
 import LogoutIcon from '@mui/icons-material/ExitToAppOutlined';
 import InventoryIcon from '@mui/icons-material/AllInbox';
+import AddCircleIcon from '@mui/icons-material/AddCircleOutline';
+import RemoveCircleIcon from '@mui/icons-material/RemoveCircleOutline';
 
-const Estoque = ({ produtos, onBack, onLogout }) => {
+const Estoque = ({ produtos, onBack, onLogout, aoAtualizarQtd }) => {
   const sidebarIconStyle = { color: 'white', fontSize: '2.2rem' };
 
   return (
@@ -30,7 +33,7 @@ const Estoque = ({ produtos, onBack, onLogout }) => {
         </IconButton>
       </Box>
 
-      {/* CONTEÚDO PRINCIPAL (ESTÉTICA IGUAL VENDA CONSULTA) */}
+      {/* CONTEÚDO PRINCIPAL */}
       <Box sx={{ flexGrow: 1, p: 4, display: 'flex', flexDirection: 'column', gap: 3 }}>
         
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
@@ -53,7 +56,7 @@ const Estoque = ({ produtos, onBack, onLogout }) => {
                 <TableCell sx={{ bgcolor: '#128654', color: 'white', fontWeight: 'bold' }}>CÓDIGO</TableCell>
                 <TableCell sx={{ bgcolor: '#128654', color: 'white', fontWeight: 'bold' }}>DESCRIÇÃO DO PRODUTO</TableCell>
                 <TableCell sx={{ bgcolor: '#128654', color: 'white', fontWeight: 'bold' }}>CATEGORIA</TableCell>
-                <TableCell sx={{ bgcolor: '#128654', color: 'white', fontWeight: 'bold' }} align="center">QTD</TableCell>
+                <TableCell sx={{ bgcolor: '#128654', color: 'white', fontWeight: 'bold' }} align="center">AJUSTAR ESTOQUE</TableCell>
                 <TableCell sx={{ bgcolor: '#128654', color: 'white', fontWeight: 'bold' }} align="right">PREÇO VENDA</TableCell>
                 <TableCell sx={{ bgcolor: '#128654', color: 'white', fontWeight: 'bold' }} align="right">MARGEM</TableCell>
               </TableRow>
@@ -71,8 +74,32 @@ const Estoque = ({ produtos, onBack, onLogout }) => {
                     <TableCell sx={{ fontWeight: 'bold', color: '#128654' }}>{prod.cod}</TableCell>
                     <TableCell sx={{ color: '#555', textTransform: 'uppercase' }}>{prod.desc}</TableCell>
                     <TableCell sx={{ color: '#888' }}>{prod.categoria || "OUTROS"}</TableCell>
-                    {/* AQUI: Lendo 'prod.qtd' que vem do componente Produto */}
-                    <TableCell align="center" sx={{ color: '#128654', fontWeight: 'bold' }}>{prod.qtd}</TableCell>
+                    
+                    {/* CÉLULA DE QUANTIDADE COM BOTÕES DE ALTERAÇÃO */}
+                    <TableCell align="center">
+                      <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
+                        <IconButton 
+                          size="small" 
+                          onClick={() => aoAtualizarQtd(prod.cod, Number(prod.qtd) - 1)}
+                          sx={{ color: '#D32F2F' }}
+                        >
+                          <RemoveCircleIcon />
+                        </IconButton>
+                        
+                        <Typography sx={{ color: '#128654', fontWeight: 'bold', minWidth: '30px', textAlign: 'center' }}>
+                          {prod.qtd}
+                        </Typography>
+
+                        <IconButton 
+                          size="small" 
+                          onClick={() => aoAtualizarQtd(prod.cod, Number(prod.qtd) + 1)}
+                          sx={{ color: '#128654' }}
+                        >
+                          <AddCircleIcon />
+                        </IconButton>
+                      </Stack>
+                    </TableCell>
+
                     <TableCell align="right" sx={{ fontWeight: 'bold' }}>
                       R$ {prod.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </TableCell>
