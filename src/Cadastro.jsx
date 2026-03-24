@@ -4,27 +4,31 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import LanguageIcon from '@mui/icons-material/Language';
 
-function Cadastro({ aoVoltar, aoSalvarCadastro }) {
+// Adicionada a prop aoNotificar para feedback visual (LLW-140)
+function Cadastro({ aoVoltar, aoSalvarCadastro, aoNotificar }) {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   
   // ESTADOS PARA SALVAR OS DADOS
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [carregando, setCarregando] = useState(false); // Para o efeito de carregar
+  const [carregando, setCarregando] = useState(false);
 
   const lidarComCadastro = () => {
+    // Validação de campos (LLW-141)
     if (nome && email && senha) {
       setCarregando(true);
       
-      // Simula um carregamento de 1.5 segundos conforme pedido
+      // Simula um carregamento de 1.5 segundos
       setTimeout(() => {
         setCarregando(false);
         // Envia os dados para o App.js
         aoSalvarCadastro({ nome, email, senha });
+        // O feedback de sucesso é disparado pelo App.js, mas você pode reforçar aqui se desejar
       }, 1500);
     } else {
-      alert("Por favor, preencha todos os campos!");
+      // Substituído alert por notificação profissional (LLW-140)
+      aoNotificar("Por favor, preencha todos os campos para realizar o cadastro!", "warning");
     }
   };
 
@@ -33,7 +37,7 @@ function Cadastro({ aoVoltar, aoSalvarCadastro }) {
       <CssBaseline />
       <Grid container sx={{ height: '100vh', width: '100vw', m: 0, p: 0 }}>
         
-        {/* LADO ESQUERDO: BRANCO */}
+        {/* LADO ESQUERDO: FORMULÁRIO */}
         <Grid item xs={12} md={6} sx={{ 
           display: 'flex', flexDirection: 'column', justifyContent: 'space-between', 
           alignItems: 'center', p: 6, bgcolor: 'white' 
@@ -50,18 +54,21 @@ function Cadastro({ aoVoltar, aoSalvarCadastro }) {
 
             <TextField 
               fullWidth label="NOME" variant="outlined" 
+              value={nome}
               onChange={(e) => setNome(e.target.value)}
               sx={{ mb: 2, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#128654' } } }} 
             />
             
             <TextField 
               fullWidth label="E-MAIL" variant="outlined" 
+              value={email}
               onChange={(e) => setEmail(e.target.value)}
               sx={{ mb: 2, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#128654' } } }} 
             />
 
             <TextField 
               fullWidth label="SENHA" type={mostrarSenha ? 'text' : 'password'} variant="outlined"
+              value={senha}
               onChange={(e) => setSenha(e.target.value)}
               sx={{ mb: 3, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#128654' } } }}
               InputProps={{
@@ -79,7 +86,7 @@ function Cadastro({ aoVoltar, aoSalvarCadastro }) {
               variant="contained" 
               fullWidth 
               onClick={lidarComCadastro}
-              disabled={carregando} // Desativa enquanto carrega
+              disabled={carregando}
               sx={{ bgcolor: '#128654', '&:hover': { bgcolor: '#0e6b43' }, py: 1.5, textTransform: 'none', fontWeight: 'bold', borderRadius: '8px' }}
             >
               {carregando ? <CircularProgress size={24} color="inherit" /> : "Criar nova conta"}

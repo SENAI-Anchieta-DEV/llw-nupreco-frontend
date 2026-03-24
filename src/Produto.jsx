@@ -28,7 +28,7 @@ const nuInputStyle = {
   },
 };
 
-const Produto = ({ onBack, onLogout, onSalvarProduto, produtosCadastrados, onExcluirProduto, aoClicarEstoque }) => {
+const Produto = ({ onBack, onLogout, onSalvarProduto, produtosCadastrados, onExcluirProduto, aoClicarEstoque, aoNotificar }) => {
   const [modoLista, setModoLista] = useState(false);
   const [acaoLista, setAcaoLista] = useState(''); 
 
@@ -43,27 +43,38 @@ const Produto = ({ onBack, onLogout, onSalvarProduto, produtosCadastrados, onExc
   const [valorSugerido, setValorSugerido] = useState('0.00');
   const [margemLucro, setMargemLucro] = useState('0.00%');
 
-  const listaCategorias = ['MERCEARIA', 'BEBIDAS', 'LIMPEZA', 'OUTROS'];
+  const listaCategorias = ['MERCEARIA', 'BEBIDAS', 'LIMPEZA', 'HORTIFRUTI', 'AÇOUGUE', 'OUTROS'];
 
-  // Lógica de cálculo automática
+  // Lógica de cálculo automática (Margem e Sugestão de Preço)
   useEffect(() => {
     const pago = parseFloat(valorPago.toString().replace(',', '.'));
     const definido = parseFloat(valorDefinido.toString().replace(',', '.'));
-    if (!isNaN(pago)) setValorSugerido((pago * 1.5).toFixed(2));
+    
+    if (!isNaN(pago)) {
+      setValorSugerido((pago * 1.5).toFixed(2)); // Sugestão de 50% de margem
+    }
+    
     if (!isNaN(pago) && !isNaN(definido) && definido > 0) {
       const margem = ((definido - pago) / definido) * 100;
       setMargemLucro(`${margem.toFixed(2)}%`);
+    } else {
+      setMargemLucro('0.00%');
     }
   }, [valorPago, valorDefinido]);
 
   const limparCampos = () => {
     setIdInterno(null);
-    setCodigo(''); setDescricao(''); setValorPago(''); setValorDefinido(''); setQuantidade('1'); setCategoria('');
+    setCodigo(''); 
+    setDescricao(''); 
+    setValorPago(''); 
+    setValorDefinido(''); 
+    setQuantidade('1'); 
+    setCategoria('');
   };
 
   const prepararLista = (acao) => {
     if (acao === 'CONSULTAR') {
-        aoClicarEstoque(); // Vai para a tela de estoque conforme solicitado
+        aoClicarEstoque(); // Navega para a tela de estoque
         return;
     }
     setAcaoLista(acao);
@@ -72,11 +83,12 @@ const Produto = ({ onBack, onLogout, onSalvarProduto, produtosCadastrados, onExc
 
   const salvarOuRessalvar = () => {
     if (!codigo || !descricao || !valorDefinido) {
-      alert("Preencha os campos obrigatórios!"); return;
+      aoNotificar("Código, Descrição e Preço são obrigatórios!", "warning"); 
+      return;
     }
 
     const payload = {
-      id: idInterno || Date.now(),
+      id: idInterno || Date.now().toString(),
       cod: codigo,
       desc: descricao.toUpperCase(),
       preco: parseFloat(valorDefinido.toString().replace(',', '.')),
@@ -86,8 +98,8 @@ const Produto = ({ onBack, onLogout, onSalvarProduto, produtosCadastrados, onExc
       margem: margemLucro
     };
 
-    onSalvarProduto(payload); // O App.js deve lidar com a lógica de update se o ID já existir
-    alert(idInterno ? "Produto atualizado!" : "Produto cadastrado!");
+    onSalvarProduto(payload); 
+    // O feedback de sucesso já é disparado pelo App.js
     setModoLista(false);
     limparCampos();
   };
@@ -96,6 +108,7 @@ const Produto = ({ onBack, onLogout, onSalvarProduto, produtosCadastrados, onExc
     <Box sx={{ display: 'flex', bgcolor: '#F9F9F9', height: '100vh', width: '100vw', overflow: 'hidden' }}>
       <CssBaseline />
       
+      {/* SIDEBAR */}
       <Box sx={{ width: 85, bgcolor: '#128654', display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3, height: '100vh', position: 'fixed', left: 0 }}>
         <IconButton onClick={onBack} sx={{ mb: 4 }}><HomeIcon sx={{ fontSize: '2.5rem', color: 'white' }} /></IconButton>
         <Box sx={{ flexGrow: 1 }} />
@@ -103,17 +116,17 @@ const Produto = ({ onBack, onLogout, onSalvarProduto, produtosCadastrados, onExc
       </Box>
 
       <Box sx={{ flexGrow: 1, ml: '85px', p: 4, display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <Typography variant="caption" sx={{ color: '#DDD', fontWeight: 'bold' }}>PRODUTOS</Typography>
+        <Typography variant="caption" sx={{ color: '#999', fontWeight: 'bold' }}>CONTROLE DE PRODUTOS</Typography>
         
         <Grid container spacing={2}>
           <Grid item xs={3} onClick={() => {setModoLista(false); limparCampos();}}><ActionCard label="NOVO PRODUTO" icon={<AddCircleOutlineIcon sx={{ color: '#128654', fontSize: '3rem' }} />} /></Grid>
           <Grid item xs={3} onClick={() => prepararLista('EXCLUIR')}><ActionCard label="EXCLUIR PRODUTO" icon={<HighlightOffIcon sx={{ color: '#C62828', fontSize: '3rem' }} />} /></Grid>
-          <Grid item xs={3} onClick={() => prepararLista('EDITAR')}><ActionCard label="ALTERAR PRODUTO" icon={<EditIcon sx={{ color: '#FBC02D', fontSize: '3rem' }} />} /></Grid>
-          <Grid item xs={3} onClick={() => prepararLista('CONSULTAR')}><ActionCard label="CONSULTAR ESTOQUE" icon={<ListAltIcon sx={{ color: '#1976D2', fontSize: '3rem' }} />} /></Grid>
+          <Grid item xs={3} onClick={() => prepararLista('EDITAR')}><ActionCard label="ALTERAR DADOS" icon={<EditIcon sx={{ color: '#FBC02D', fontSize: '3rem' }} />} /></Grid>
+          <Grid item xs={3} onClick={() => prepararLista('CONSULTAR')}><ActionCard label="VER ESTOQUE" icon={<ListAltIcon sx={{ color: '#1976D2', fontSize: '3rem' }} />} /></Grid>
         </Grid>
 
         {modoLista ? (
-          <TableContainer component={Paper} sx={{ borderRadius: '25px', maxHeight: '60vh' }}>
+          <TableContainer component={Paper} sx={{ borderRadius: '25px', maxHeight: '65vh', boxShadow: 'none', border: '1px solid #EEE' }}>
             <Table stickyHeader>
               <TableHead>
                 <TableRow>
@@ -126,22 +139,22 @@ const Produto = ({ onBack, onLogout, onSalvarProduto, produtosCadastrados, onExc
               </TableHead>
               <TableBody>
                 {produtosCadastrados.map((p) => (
-                  <TableRow key={p.id}>
+                  <TableRow key={p.id} sx={{ '&:hover': { bgcolor: '#F5F5F5' } }}>
                     <TableCell>{p.cod}</TableCell>
-                    <TableCell>{p.desc}</TableCell>
-                    <TableCell>R$ {p.preco.toFixed(2)}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>{p.desc}</TableCell>
+                    <TableCell>R$ {Number(p.preco).toFixed(2)}</TableCell>
                     <TableCell>{p.qtd}</TableCell>
                     <TableCell align="center">
                       <Button onClick={() => {
                         if(acaoLista === 'EXCLUIR') {
-                            if(window.confirm("Apagar produto?")) onExcluirProduto(p.id);
+                            onExcluirProduto(p.id);
                         } else {
                             setIdInterno(p.id); setCodigo(p.cod); setDescricao(p.desc); 
                             setValorPago(p.custo); setValorDefinido(p.preco); setQuantidade(p.qtd);
                             setCategoria(p.categoria); setModoLista(false);
                         }
-                      }} sx={{color: acaoLista === 'EXCLUIR' ? 'red' : 'orange'}}>
-                        {acaoLista === 'EXCLUIR' ? 'APAGAR' : 'EDITAR'}
+                      }} sx={{color: acaoLista === 'EXCLUIR' ? '#d32f2f' : '#ed6c02', fontWeight: 'bold'}}>
+                        {acaoLista === 'EXCLUIR' ? 'REMOVER' : 'EDITAR'}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -150,28 +163,32 @@ const Produto = ({ onBack, onLogout, onSalvarProduto, produtosCadastrados, onExc
             </Table>
           </TableContainer>
         ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <Typography sx={{color:'#128654', fontWeight:'bold'}}>ID: {idInterno || "NOVO PRODUTO"}</Typography>
+          <Box sx={{ bgcolor: 'white', p: 4, borderRadius: '25px', boxShadow: '0px 4px 20px rgba(0,0,0,0.05)' }}>
+            <Typography sx={{color:'#128654', fontWeight:'bold', mb: 3}}>
+              {idInterno ? `EDITANDO PRODUTO (ID: ${idInterno})` : "CADASTRO DE NOVO PRODUTO"}
+            </Typography>
+            
             <Grid container spacing={2}>
-              <Grid item xs={2}><TextField label="QTD" value={quantidade} onChange={(e)=>setQuantidade(e.target.value)} type="number" fullWidth sx={nuInputStyle} /></Grid>
-              <Grid item xs={3}><TextField label="CÓDIGO" value={codigo} onChange={(e)=>setCodigo(e.target.value)} fullWidth sx={nuInputStyle} /></Grid>
-              <Grid item xs={7}><TextField label="DESCRIÇÃO" value={descricao} onChange={(e)=>setDescricao(e.target.value)} fullWidth sx={nuInputStyle} /></Grid>
+              <Grid item xs={2}><TextField label="QTD INICIAL" value={quantidade} onChange={(e)=>setQuantidade(e.target.value)} type="number" fullWidth sx={nuInputStyle} /></Grid>
+              <Grid item xs={3}><TextField label="CÓDIGO / EAN" value={codigo} onChange={(e)=>setCodigo(e.target.value)} fullWidth sx={nuInputStyle} /></Grid>
+              <Grid item xs={7}><TextField label="NOME DO PRODUTO" value={descricao} onChange={(e)=>setDescricao(e.target.value)} fullWidth sx={nuInputStyle} /></Grid>
               
-              <Grid item xs={3}><TextField label="VALOR PAGO" value={valorPago} onChange={(e)=>setValorPago(e.target.value)} fullWidth sx={nuInputStyle} InputProps={{ startAdornment: <InputAdornment position="start">R$</InputAdornment> }} /></Grid>
-              <Grid item xs={3}><TextField label="SUGERIDO" value={`R$ ${valorSugerido}`} fullWidth InputProps={{ readOnly: true }} sx={{ ...nuInputStyle, '& .MuiOutlinedInput-root': { bgcolor: '#E0E0E0' } }} /></Grid>
-              <Grid item xs={3}><TextField label="DEFINIDO" value={valorDefinido} onChange={(e)=>setValorDefinido(e.target.value)} fullWidth sx={nuInputStyle} InputProps={{ startAdornment: <InputAdornment position="start">R$</InputAdornment> }} /></Grid>
-              <Grid item xs={3}><TextField label="MARGEM" value={margemLucro} fullWidth InputProps={{ readOnly: true }} sx={{ ...nuInputStyle, '& .MuiOutlinedInput-root': { bgcolor: '#E0E0E0' } }} /></Grid>
+              <Grid item xs={3}><TextField label="VALOR DE CUSTO" value={valorPago} onChange={(e)=>setValorPago(e.target.value)} fullWidth sx={nuInputStyle} InputProps={{ startAdornment: <InputAdornment position="start">R$</InputAdornment> }} /></Grid>
+              <Grid item xs={3}><TextField label="SUGERIDO (+50%)" value={`R$ ${valorSugerido}`} fullWidth InputProps={{ readOnly: true }} sx={{ ...nuInputStyle, '& .MuiOutlinedInput-root': { bgcolor: '#F0F0F0' } }} /></Grid>
+              <Grid item xs={3}><TextField label="PREÇO DE VENDA" value={valorDefinido} onChange={(e)=>setValorDefinido(e.target.value)} fullWidth sx={nuInputStyle} InputProps={{ startAdornment: <InputAdornment position="start">R$</InputAdornment> }} /></Grid>
+              <Grid item xs={3}><TextField label="MARGEM REAL" value={margemLucro} fullWidth InputProps={{ readOnly: true }} sx={{ ...nuInputStyle, '& .MuiOutlinedInput-root': { bgcolor: '#F0F0F0' } }} /></Grid>
               
               <Grid item xs={12}>
-                <TextField select label="CATEGORIA" value={categoria} onChange={(e)=>setCategoria(e.target.value)} fullWidth sx={nuInputStyle}>
+                <TextField select label="CATEGORIA DO PRODUTO" value={categoria} onChange={(e)=>setCategoria(e.target.value)} fullWidth sx={nuInputStyle}>
                   {listaCategorias.map((opt) => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
                 </TextField>
               </Grid>
             </Grid>
 
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-              <Button variant="contained" onClick={salvarOuRessalvar} startIcon={<SaveIcon />} sx={{ bgcolor: '#128654', borderRadius: '25px', px: 10, height: '50px', fontWeight: 'bold' }}>
-                {idInterno ? "RESSALVAR PRODUTO" : "SALVAR PRODUTO"}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4, gap: 2 }}>
+              {idInterno && <Button onClick={limparCampos} sx={{ color: '#999' }}>Cancelar</Button>}
+              <Button variant="contained" onClick={salvarOuRessalvar} startIcon={<SaveIcon />} sx={{ bgcolor: '#128654', borderRadius: '25px', px: 8, height: '50px', fontWeight: 'bold' }}>
+                {idInterno ? "RESSALVAR ALTERAÇÕES" : "SALVAR NO ESTOQUE"}
               </Button>
             </Box>
           </Box>
@@ -182,7 +199,7 @@ const Produto = ({ onBack, onLogout, onSalvarProduto, produtosCadastrados, onExc
 };
 
 const ActionCard = ({ label, icon }) => (
-  <Card sx={{ p: 2, borderRadius: '25px', textAlign: 'center', cursor: 'pointer', border: '1px solid #EEE', boxShadow: '0px 4px 10px rgba(0,0,0,0.02)', '&:hover': { transform: 'scale(1.02)', transition: '0.2s' } }}>
+  <Card sx={{ p: 2, borderRadius: '25px', textAlign: 'center', cursor: 'pointer', border: '1px solid #EEE', boxShadow: '0px 4px 10px rgba(0,0,0,0.02)', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0px 10px 20px rgba(0,0,0,0.1)' } }}>
     <Typography variant="body2" sx={{ color: '#128654', fontWeight: 'bold', mb: 1 }}>{label}</Typography>
     {icon}
   </Card>
