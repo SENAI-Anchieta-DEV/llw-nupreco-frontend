@@ -5,7 +5,8 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import LanguageIcon from '@mui/icons-material/Language';
 
-function Login({ aoVoltar, onLogin, dadosParaConferir }) {
+// Alteração: Agora recebemos listaUsuarios e aoNotificar para os feedbacks visuais (LLW-140)
+function Login({ aoVoltar, onLogin, listaUsuarios = [], aoNotificar }) {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [carregando, setCarregando] = useState(false);
   
@@ -13,28 +14,41 @@ function Login({ aoVoltar, onLogin, dadosParaConferir }) {
   const [emailDigitado, setEmailDigitado] = useState("");
   const [senhaDigitada, setSenhaDigitada] = useState("");
 
-  // Função de validação com efeito de carregamento
+  // Função de validação atualizada (LLW-140/141)
   const lidarComLogin = () => {
-    if (!dadosParaConferir) {
-      alert("Nenhum usuário cadastrado no sistema!");
+    // Validação de campos vazios (Feedback visual em vez de alert)
+    if (!emailDigitado || !senhaDigitada) {
+      aoNotificar("Por favor, preencha todos os campos!", "warning");
       return;
     }
 
-    if (emailDigitado === dadosParaConferir.email && senhaDigitada === dadosParaConferir.senha) {
+    if (!listaUsuarios || listaUsuarios.length === 0) {
+      aoNotificar("Nenhum usuário cadastrado no sistema!", "error");
+      return;
+    }
+
+    // Procura na lista se existe alguém com esse e-mail e senha
+    const usuarioEncontrado = listaUsuarios.find(
+      (u) => u.email.toLowerCase() === emailDigitado.toLowerCase() && u.senha === senhaDigitada
+    );
+
+    if (usuarioEncontrado) {
       setCarregando(true);
-      // Simula o carregamento antes de entrar na Home (padrão de UX do manual)
+      // Simula o carregamento antes de entrar na Home
       setTimeout(() => {
         setCarregando(false);
-        onLogin(); 
+        onLogin(usuarioEncontrado.nome); 
+        aoNotificar(`Bem-vindo de volta, ${usuarioEncontrado.nome}!`, "success");
       }, 1500);
     } else {
-      alert("E-mail ou senha incorretos! Tente novamente.");
+      // Mensagem de erro profissional (LLW-140)
+      aoNotificar("E-mail ou senha incorretos! Tente novamente.", "error");
     }
   };
 
   // Função para o link de recuperação de senha
   const recuperarSenha = () => {
-    alert("Um link de recuperação foi enviado para o seu e-mail.");
+    aoNotificar("Um link de recuperação foi enviado para o seu e-mail.", "info");
   };
 
   return (
