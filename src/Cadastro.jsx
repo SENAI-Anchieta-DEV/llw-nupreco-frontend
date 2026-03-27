@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Grid, TextField, InputAdornment, IconButton, Divider, CssBaseline, CircularProgress } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import LanguageIcon from '@mui/icons-material/Language';
 
-function Cadastro({ aoVoltar, aoSalvarCadastro }) {
+// ADICIONADO: erroServidor nas props (LLW-142)
+function Cadastro({ aoVoltar, aoSalvarCadastro, erroServidor }) {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   
-  // ESTADOS PARA SALVAR OS DADOS
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -15,29 +15,52 @@ function Cadastro({ aoVoltar, aoSalvarCadastro }) {
   
   // ESTADOS PARA VALIDAÇÃO (LLW-141)
   const [erros, setErros] = useState({ nome: false, email: false, senha: false });
+  const [mensagensErro, setMensagensErro] = useState({ nome: "", email: "", senha: "" });
+
+  // --- MONITORAR ERROS DO SERVIDOR (LLW-142) ---
+  useEffect(() => {
+    if (erroServidor && erroServidor.fields) {
+      const novosErros = { nome: false, email: false, senha: false };
+      const novasMensagens = { nome: "", email: "", senha: "" };
+
+      // Mapeia os erros que vem do ProblemDetail do Java
+      erroServidor.fields.forEach(f => {
+        if (novosErros.hasOwnProperty(f.name)) {
+          novosErros[f.name] = true;
+          novasMensagens[f.name] = f.userMessage;
+        }
+      });
+
+      setErros(novosErros);
+      setMensagensErro(novasMensagens);
+      setCarregando(false);
+    }
+  }, [erroServidor]);
 
   const validarEmail = (email) => {
-    // Regra para verificar se o e-mail tem @ e .com, etc.
     return /\S+@\S+\.\S+/.test(email);
   };
 
   const lidarComCadastro = () => {
-    // Validação rigorosa para Nome, Email e Senha
     const novosErros = {
       nome: !nome,
-      email: !email || !validarEmail(email), // Verifica se está vazio OU se o formato é inválido
+      email: !email || !validarEmail(email),
       senha: !senha || senha.length < 6
     };
-    setErros(novosErros);
 
-    // Só avança se todos os campos estiverem OK
+    const novasMensagens = {
+      nome: novosErros.nome ? "O nome é obrigatório" : "",
+      email: novosErros.email ? (!email ? "E-mail obrigatório" : "Formato de e-mail inválido") : "",
+      senha: novosErros.senha ? (!senha ? "A senha é obrigatória" : "Mínimo de 6 caracteres") : ""
+    };
+
+    setErros(novosErros);
+    setMensagensErro(novasMensagens);
+
     if (!novosErros.nome && !novosErros.email && !novosErros.senha) {
       setCarregando(true);
-      
-      setTimeout(() => {
-        setCarregando(false);
-        aoSalvarCadastro({ nome, email, senha });
-      }, 1500);
+      // O App.js cuidará do redirecionamento (LLW-143)
+      aoSalvarCadastro({ nome, email, senha });
     }
   };
 
@@ -46,7 +69,6 @@ function Cadastro({ aoVoltar, aoSalvarCadastro }) {
       <CssBaseline />
       <Grid container sx={{ height: '100vh', width: '100vw', m: 0, p: 0 }}>
         
-        {/* LADO ESQUERDO: BRANCO */}
         <Grid item xs={12} md={6} sx={{ 
           display: 'flex', flexDirection: 'column', justifyContent: 'space-between', 
           alignItems: 'center', p: 6, bgcolor: 'white' 
@@ -61,14 +83,13 @@ function Cadastro({ aoVoltar, aoSalvarCadastro }) {
               Crie sua conta para começar a gerenciar seus preços
             </Typography>
 
-            {/* CAMPO NOME */}
             <TextField 
               fullWidth 
               label="NOME COMPLETO" 
               variant="outlined" 
               required
               error={erros.nome}
-              helperText={erros.nome ? "O nome é obrigatório" : ""}
+              helperText={mensagensErro.nome}
               onChange={(e) => {
                 setNome(e.target.value);
                 if(erros.nome) setErros({...erros, nome: false});
@@ -76,7 +97,6 @@ function Cadastro({ aoVoltar, aoSalvarCadastro }) {
               sx={{ mb: 2, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#128654' } } }} 
             />
             
-            {/* CAMPO E-MAIL com validação de formato */}
             <TextField 
               fullWidth 
               label="E-MAIL" 
@@ -84,11 +104,7 @@ function Cadastro({ aoVoltar, aoSalvarCadastro }) {
               required
               type="email"
               error={erros.email}
-              helperText={
-                erros.email 
-                  ? (!email ? "E-mail obrigatório" : "Formato de e-mail inválido") 
-                  : "Ex: contato@nupreco.com.br"
-              }
+              helperText={erros.email ? mensagensErro.email : "Ex: contato@nupreco.com.br"}
               onChange={(e) => {
                 setEmail(e.target.value);
                 if(erros.email) setErros({...erros, email: false});
@@ -96,7 +112,6 @@ function Cadastro({ aoVoltar, aoSalvarCadastro }) {
               sx={{ mb: 2, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#128654' } } }} 
             />
 
-            {/* CAMPO SENHA */}
             <TextField 
               fullWidth 
               label="SENHA" 
@@ -104,20 +119,12 @@ function Cadastro({ aoVoltar, aoSalvarCadastro }) {
               variant="outlined"
               required
               error={erros.senha}
-              helperText={
-                erros.senha 
-                  ? (!senha ? "A senha é obrigatória" : "Mínimo de 6 caracteres") 
-                  : "Mínimo 6 caracteres"
-              }
+              helperText={erros.senha ? mensagensErro.senha : "Mínimo 6 caracteres"}
               onChange={(e) => {
                 setSenha(e.target.value);
                 if(erros.senha) setErros({...erros, senha: false});
               }}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  lidarComCadastro();
-                }
-              }}
+              onKeyPress={(e) => { if (e.key === 'Enter') lidarComCadastro(); }}
               sx={{ mb: 3, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#128654' } } }}
               InputProps={{
                 endAdornment: (
@@ -165,7 +172,6 @@ function Cadastro({ aoVoltar, aoSalvarCadastro }) {
           </Box>
         </Grid>
 
-        {/* LADO DIREITO: VERDE */}
         <Grid item xs={0} md={6} sx={{ 
           bgcolor: '#128654', display: { xs: 'none', md: 'flex' }, height: '100vh', m: 0, p: 0
         }} />
