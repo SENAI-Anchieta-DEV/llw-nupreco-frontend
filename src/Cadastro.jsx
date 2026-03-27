@@ -1,34 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Grid, TextField, InputAdornment, IconButton, Divider, CssBaseline, CircularProgress } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import LanguageIcon from '@mui/icons-material/Language';
 
-// Adicionada a prop aoNotificar para feedback visual (LLW-140)
-function Cadastro({ aoVoltar, aoSalvarCadastro, aoNotificar }) {
+// ADICIONADO: erroServidor nas props (LLW-142)
+function Cadastro({ aoVoltar, aoSalvarCadastro, erroServidor }) {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   
-  // ESTADOS PARA SALVAR OS DADOS
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [carregando, setCarregando] = useState(false);
+  
+  // ESTADOS PARA VALIDAÇÃO (LLW-141)
+  const [erros, setErros] = useState({ nome: false, email: false, senha: false });
+  const [mensagensErro, setMensagensErro] = useState({ nome: "", email: "", senha: "" });
+
+  // --- MONITORAR ERROS DO SERVIDOR (LLW-142) ---
+  useEffect(() => {
+    if (erroServidor && erroServidor.fields) {
+      const novosErros = { nome: false, email: false, senha: false };
+      const novasMensagens = { nome: "", email: "", senha: "" };
+
+      // Mapeia os erros que vem do ProblemDetail do Java
+      erroServidor.fields.forEach(f => {
+        if (novosErros.hasOwnProperty(f.name)) {
+          novosErros[f.name] = true;
+          novasMensagens[f.name] = f.userMessage;
+        }
+      });
+
+      setErros(novosErros);
+      setMensagensErro(novasMensagens);
+      setCarregando(false);
+    }
+  }, [erroServidor]);
+
+  const validarEmail = (email) => {
+    return /\S+@\S+\.\S+/.test(email);
+  };
 
   const lidarComCadastro = () => {
-    // Validação de campos (LLW-141)
-    if (nome && email && senha) {
+    const novosErros = {
+      nome: !nome,
+      email: !email || !validarEmail(email),
+      senha: !senha || senha.length < 6
+    };
+
+    const novasMensagens = {
+      nome: novosErros.nome ? "O nome é obrigatório" : "",
+      email: novosErros.email ? (!email ? "E-mail obrigatório" : "Formato de e-mail inválido") : "",
+      senha: novosErros.senha ? (!senha ? "A senha é obrigatória" : "Mínimo de 6 caracteres") : ""
+    };
+
+    setErros(novosErros);
+    setMensagensErro(novasMensagens);
+
+    if (!novosErros.nome && !novosErros.email && !novosErros.senha) {
       setCarregando(true);
-      
-      // Simula um carregamento de 1.5 segundos
-      setTimeout(() => {
-        setCarregando(false);
-        // Envia os dados para o App.js
-        aoSalvarCadastro({ nome, email, senha });
-        // O feedback de sucesso é disparado pelo App.js, mas você pode reforçar aqui se desejar
-      }, 1500);
-    } else {
-      // Substituído alert por notificação profissional (LLW-140)
-      aoNotificar("Por favor, preencha todos os campos para realizar o cadastro!", "warning");
+      // O App.js cuidará do redirecionamento (LLW-143)
+      aoSalvarCadastro({ nome, email, senha });
     }
   };
 
@@ -37,7 +69,6 @@ function Cadastro({ aoVoltar, aoSalvarCadastro, aoNotificar }) {
       <CssBaseline />
       <Grid container sx={{ height: '100vh', width: '100vw', m: 0, p: 0 }}>
         
-        {/* LADO ESQUERDO: FORMULÁRIO */}
         <Grid item xs={12} md={6} sx={{ 
           display: 'flex', flexDirection: 'column', justifyContent: 'space-between', 
           alignItems: 'center', p: 6, bgcolor: 'white' 
@@ -53,23 +84,47 @@ function Cadastro({ aoVoltar, aoSalvarCadastro, aoNotificar }) {
             </Typography>
 
             <TextField 
-              fullWidth label="NOME" variant="outlined" 
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
+              fullWidth 
+              label="NOME COMPLETO" 
+              variant="outlined" 
+              required
+              error={erros.nome}
+              helperText={mensagensErro.nome}
+              onChange={(e) => {
+                setNome(e.target.value);
+                if(erros.nome) setErros({...erros, nome: false});
+              }}
               sx={{ mb: 2, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#128654' } } }} 
             />
             
             <TextField 
-              fullWidth label="E-MAIL" variant="outlined" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              fullWidth 
+              label="E-MAIL" 
+              variant="outlined" 
+              required
+              type="email"
+              error={erros.email}
+              helperText={erros.email ? mensagensErro.email : "Ex: contato@nupreco.com.br"}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if(erros.email) setErros({...erros, email: false});
+              }}
               sx={{ mb: 2, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#128654' } } }} 
             />
 
             <TextField 
-              fullWidth label="SENHA" type={mostrarSenha ? 'text' : 'password'} variant="outlined"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
+              fullWidth 
+              label="SENHA" 
+              type={mostrarSenha ? 'text' : 'password'} 
+              variant="outlined"
+              required
+              error={erros.senha}
+              helperText={erros.senha ? mensagensErro.senha : "Mínimo 6 caracteres"}
+              onChange={(e) => {
+                setSenha(e.target.value);
+                if(erros.senha) setErros({...erros, senha: false});
+              }}
+              onKeyPress={(e) => { if (e.key === 'Enter') lidarComCadastro(); }}
               sx={{ mb: 3, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#128654' } } }}
               InputProps={{
                 endAdornment: (
@@ -86,7 +141,7 @@ function Cadastro({ aoVoltar, aoSalvarCadastro, aoNotificar }) {
               variant="contained" 
               fullWidth 
               onClick={lidarComCadastro}
-              disabled={carregando}
+              disabled={carregando} 
               sx={{ bgcolor: '#128654', '&:hover': { bgcolor: '#0e6b43' }, py: 1.5, textTransform: 'none', fontWeight: 'bold', borderRadius: '8px' }}
             >
               {carregando ? <CircularProgress size={24} color="inherit" /> : "Criar nova conta"}
@@ -117,7 +172,6 @@ function Cadastro({ aoVoltar, aoSalvarCadastro, aoNotificar }) {
           </Box>
         </Grid>
 
-        {/* LADO DIREITO: VERDE */}
         <Grid item xs={0} md={6} sx={{ 
           bgcolor: '#128654', display: { xs: 'none', md: 'flex' }, height: '100vh', m: 0, p: 0
         }} />
