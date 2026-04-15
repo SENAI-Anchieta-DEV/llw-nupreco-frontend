@@ -1,157 +1,165 @@
-import React, { useState } from 'react';
-import { 
-  Box, Typography, Card, IconButton, Stack, CssBaseline, 
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
-  Chip, Pagination, Drawer, List, ListItem, ListItemIcon, ListItemText 
+import React, { useMemo } from 'react';
+import {
+  Box,
+  Typography,
+  Card,
+  Stack,
+  CssBaseline,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  Pagination,
+  useTheme
 } from '@mui/material';
-
-import MenuIcon from '@mui/icons-material/Menu';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
 import PersonIcon from '@mui/icons-material/PersonOutline';
-import AssessmentIcon from '@mui/icons-material/AssessmentOutlined'; 
+import AssessmentIcon from '@mui/icons-material/AssessmentOutlined';
+import StorefrontIcon from '@mui/icons-material/StorefrontOutlined';
+import ReportProblemIcon from '@mui/icons-material/WarningAmber';
 import InventoryIcon from '@mui/icons-material/AllInbox';
-import WarningIcon from '@mui/icons-material/WarningAmber';
+import CategoryIcon from '@mui/icons-material/CategoryOutlined';
 import LogoutIcon from '@mui/icons-material/ExitToAppOutlined';
-import GroupIcon from '@mui/icons-material/GroupOutlined';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import DesktopWindowsIcon from '@mui/icons-material/DesktopWindowsOutlined';
+import SidebarMenu from './components/SidebarMenu';
 
-const VendaConsulta = ({ onBack, onLogout, vendas }) => {
-  // 1. ESTADO PARA O MENU
-  const [menuAberto, setMenuAberto] = useState(false);
-  const toggleMenu = () => setMenuAberto(!menuAberto);
+const formatarMoeda = (valor) =>
+  Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-  // 2. LÓGICA DE SOMA TOTAL
-  const totalVendido = vendas
-    .filter(v => v.status === 'CONCLUIDA')
-    .reduce((acc, v) => {
-      let valorLimpo = v.total.replace('R$', '').replace(/\s/g, '');
-      if (valorLimpo.includes(',')) {
-        valorLimpo = valorLimpo.replace(/\./g, '').replace(',', '.');
-      } 
-      const numero = parseFloat(valorLimpo) || 0;
-      return acc + numero;
-    }, 0);
+const VendaConsulta = ({ onBack, onLogout, historicoVendas = [], aoIrUsuarios, aoIrProdutos, aoIrPdv, aoIrContas, aoIrEstoque }) => {
+  const theme = useTheme();
 
-  const vendasConcluidas = vendas.filter(v => v.status === 'CONCLUIDA').length;
-  const taxaCrescimento = vendas.length > 0 ? ((vendasConcluidas / vendas.length) * 100).toFixed(0) : 0;
-
-  // Itens do Menu
-  const itensMenu = [
-    { text: 'INÍCIO', icon: <HomeIcon />, action: onBack },
-    { text: 'USUÁRIO', icon: <PersonIcon /> },
-    { text: 'VENDAS', icon: <AssessmentIcon /> },
-    { text: 'ESTOQUE', icon: <InventoryIcon />, action: onBack },
-    { text: 'CONTAS', icon: <WarningIcon /> },
-    { text: 'SAIR', icon: <LogoutIcon />, action: onLogout },
+  const modulos = [
+    { text: 'Início', icon: <HomeIcon />, action: onBack },
+    { text: 'Usuário', icon: <PersonIcon />, action: aoIrUsuarios },
+    { text: 'Vendas', icon: <AssessmentIcon /> },
+    { text: 'Pdv Rápido', icon: <StorefrontIcon />, action: aoIrPdv },
+    { text: 'Contas', icon: <ReportProblemIcon />, action: aoIrContas },
+    { text: 'Estoque', icon: <InventoryIcon />, action: aoIrEstoque },
+    { text: 'Produtos', icon: <CategoryIcon />, action: aoIrProdutos },
+    { text: 'Sair', icon: <LogoutIcon />, action: onLogout }
   ];
 
+  const vendas = useMemo(() => {
+    return historicoVendas.map((venda, index) => ({
+      id: venda.id || `VENDA-${index + 1}`,
+      data: venda.data || '-',
+      vendedor: venda.vendedor || 'SISTEMA',
+      qtd: Array.isArray(venda.itens) ? venda.itens.reduce((acc, item) => acc + Number(item.qtd || 0), 0) : Number(venda.qtd || 0),
+      total: Number(venda.total || 0),
+      status: venda.status || 'CONCLUIDA'
+    }));
+  }, [historicoVendas]);
+
+  const totalVendido = vendas.filter((v) => v.status === 'CONCLUIDA').reduce((acc, v) => acc + Number(v.total || 0), 0);
+  const vendasConcluidas = vendas.filter((v) => v.status === 'CONCLUIDA').length;
+  const taxaConclusao = vendas.length > 0 ? Math.round((vendasConcluidas / vendas.length) * 100) : 0;
+
   return (
-    <Box sx={{ display: 'flex', bgcolor: '#F9F9F9', height: '100vh', width: '100vw', overflow: 'hidden' }}>
+    <Box sx={{ display: 'flex', bgcolor: 'background.default', height: '100vh', width: '100vw', overflow: 'hidden' }}>
       <CssBaseline />
+      <SidebarMenu modulos={modulos} />
 
-      {/* MENU LATERAL EXPANSÍVEL (DRAWER) */}
-      <Drawer
-        anchor="left"
-        open={menuAberto}
-        onClose={toggleMenu}
-        PaperProps={{
-          sx: { width: 280, bgcolor: '#128654', color: 'white', pt: 2 }
-        }}
-      >
-        <Typography variant="h5" sx={{ p: 3, fontWeight: 'bold', textAlign: 'center' }}>NuPreço</Typography>
-        <List>
-          {itensMenu.map((item) => (
-            <ListItem button key={item.text} onClick={() => { item.action?.(); toggleMenu(); }} sx={{ py: 1.5 }}>
-              <ListItemIcon sx={{ color: 'white', minWidth: 50 }}>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} primaryTypographyProps={{ fontWeight: 'bold' }} />
-            </ListItem>
-          ))}
-        </List>
-      </Drawer>
+      <Box sx={{ flexGrow: 1, px: { xs: 3, lg: 6 }, py: { xs: 2, lg: 4 }, display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Box>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
+              HISTÓRICO / VENDAS
+            </Typography>
+            <Typography variant="h4" sx={{ color: '#128654', fontWeight: 'bold' }}>
+              VENDAS
+            </Typography>
+          </Box>
+        </Stack>
 
-      {/* SIDEBAR NUPREÇO (FIXA E MINIMALISTA) */}
-      <Box sx={{ width: 85, bgcolor: '#128654', display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3, height: '100vh', zIndex: 1200 }}>
-        <IconButton onClick={toggleMenu} sx={{ color: 'white' }}>
-          <MenuIcon sx={{ fontSize: '2.8rem' }} />
-        </IconButton>
-      </Box>
-
-      {/* CONTEÚDO PRINCIPAL */}
-      <Box sx={{ flexGrow: 1, p: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <Typography variant="caption" sx={{ color: '#AAA', fontWeight: 'bold', mb: -2, letterSpacing: 1 }}>
-          SISTEMA / VENDA CONSULTA
-        </Typography>
-
-        {/* CARDS RESUMO */}
-        <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center' }}>
-          <Card sx={{ flex: 1, maxWidth: 350, p: 3, borderRadius: '25px', display: 'flex', alignItems: 'center', gap: 2, boxShadow: '0px 10px 30px rgba(0,0,0,0.03)', border: '1px solid #F0F0F0' }}>
-            <Box sx={{ bgcolor: '#E8F5E9', p: 2, borderRadius: '50%', color: '#128654', display: 'flex' }}><GroupIcon /></Box>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3 }}>
+          <Card sx={{ p: 3, borderRadius: '20px', border: `1px solid ${theme.palette.divider}`, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ width: 48, height: 48, borderRadius: '50%', bgcolor: '#E8F5E9', color: '#128654', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <TrendingUpIcon />
+            </Box>
             <Box>
-              <Typography variant="caption" color="textSecondary">Total vendido</Typography>
+              <Typography variant="caption" color="text.secondary">VALOR TOTAL VENDIDO</Typography>
               <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#128654' }}>
-                {totalVendido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                {formatarMoeda(totalVendido)}
               </Typography>
-              <Stack direction="row" alignItems="center" spacing={0.5}>
-                <TrendingUpIcon sx={{ fontSize: 14, color: '#128654' }} />
-                <Typography variant="caption" sx={{ color: '#128654', fontWeight: 'bold' }}>{taxaCrescimento}% de conversão</Typography>
-              </Stack>
             </Box>
           </Card>
 
-          <Card sx={{ flex: 1, maxWidth: 350, p: 3, borderRadius: '25px', display: 'flex', alignItems: 'center', gap: 2, boxShadow: '0px 10px 30px rgba(0,0,0,0.03)', border: '1px solid #F0F0F0' }}>
-            <Box sx={{ bgcolor: '#E8F5E9', p: 2, borderRadius: '50%', color: '#128654', display: 'flex' }}><PersonIcon /></Box>
+          <Card sx={{ p: 3, borderRadius: '20px', border: `1px solid ${theme.palette.divider}`, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ width: 48, height: 48, borderRadius: '50%', bgcolor: '#F1F8F5', color: '#128654', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <AssessmentIcon />
+            </Box>
             <Box>
-              <Typography variant="caption" color="textSecondary">Mês Atual</Typography>
-              <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#444' }}>MARÇO</Typography>
-              <Typography variant="caption" sx={{ color: '#128654', fontWeight: 'bold' }}>Vendas ativas: {vendasConcluidas}</Typography>
+              <Typography variant="caption" color="text.secondary">TAXA DE CONCLUSÃO</Typography>
+              <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                {taxaConclusao}%
+              </Typography>
             </Box>
           </Card>
 
-          <Card sx={{ flex: 1, maxWidth: 350, p: 3, borderRadius: '25px', display: 'flex', alignItems: 'center', gap: 2, boxShadow: '0px 10px 30px rgba(0,0,0,0.03)', border: '1px solid #F0F0F0' }}>
-            <Box sx={{ bgcolor: '#E8F5E9', p: 2, borderRadius: '50%', color: '#128654', display: 'flex' }}><DesktopWindowsIcon /></Box>
+          <Card sx={{ p: 3, borderRadius: '20px', border: `1px solid ${theme.palette.divider}`, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ width: 48, height: 48, borderRadius: '50%', bgcolor: theme.palette.mode === 'dark' ? '#2A2A2A' : '#F5F5F5', color: 'text.secondary', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <DesktopWindowsIcon />
+            </Box>
             <Box>
-              <Typography variant="caption" color="textSecondary">Registros em Tela</Typography>
-              <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#444' }}>{vendas.length}</Typography>
-              <Typography variant="caption" color="textSecondary">Incluindo canceladas</Typography>
+              <Typography variant="caption" color="text.secondary">REGISTROS EM TELA</Typography>
+              <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                {vendas.length}
+              </Typography>
             </Box>
           </Card>
         </Box>
 
-        {/* TABELA */}
-        <Card sx={{ flexGrow: 1, borderRadius: '25px', p: 2, boxShadow: '0px 10px 30px rgba(0,0,0,0.03)', border: '1px solid #F0F0F0', display: 'flex', flexDirection: 'column' }}>
-          <TableContainer sx={{ maxHeight: '50vh' }}>
+        <Card sx={{ flexGrow: 1, borderRadius: '25px', p: 2, boxShadow: 'none', border: `1px solid ${theme.palette.divider}`, display: 'flex', flexDirection: 'column' }}>
+          <TableContainer sx={{ maxHeight: '52vh' }}>
             <Table stickyHeader>
               <TableHead>
                 <TableRow>
-                  {['ID', 'DATA', 'VENDEDOR', 'QUANTIDADE', 'VALOR TOTAL', 'Status'].map((head) => (
-                    <TableCell key={head} sx={{ color: '#BBB', fontWeight: 'bold', borderBottom: '1px solid #F5F5F5', bgcolor: 'white' }}>{head}</TableCell>
+                  {['ID', 'DATA', 'VENDEDOR', 'QUANTIDADE', 'VALOR TOTAL', 'STATUS'].map((head) => (
+                    <TableCell key={head} sx={{ color: 'text.secondary', fontWeight: 'bold', bgcolor: 'background.paper' }}>
+                      {head}
+                    </TableCell>
                   ))}
                 </TableRow>
               </TableHead>
+
               <TableBody>
-                {vendas.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell sx={{ fontWeight: 'bold', color: '#444' }}>{row.id}</TableCell>
-                    <TableCell>{row.data}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold' }}>{row.vendedor}</TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}>{row.qtd}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold' }}>{row.total}</TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={row.status} 
-                        sx={{ 
-                          bgcolor: row.status === 'CONCLUIDA' ? '#C8E6C9' : '#FFCDD2',
-                          color: row.status === 'CONCLUIDA' ? '#2E7D32' : '#C62828',
-                          fontWeight: 'bold', borderRadius: '8px'
-                        }} 
-                      />
+                {vendas.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center" sx={{ py: 8, color: 'text.secondary' }}>
+                      Nenhuma venda registrada até o momento.
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  vendas.map((row) => (
+                    <TableRow key={row.id} hover>
+                      <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>{row.id}</TableCell>
+                      <TableCell>{row.data}</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>{row.vendedor}</TableCell>
+                      <TableCell sx={{ textAlign: 'center' }}>{row.qtd}</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>{formatarMoeda(row.total)}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={row.status}
+                          sx={{
+                            bgcolor: row.status === 'CONCLUIDA' ? '#C8E6C9' : '#FFCDD2',
+                            color: row.status === 'CONCLUIDA' ? '#2E7D32' : '#C62828',
+                            fontWeight: 'bold',
+                            borderRadius: '8px'
+                          }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </TableContainer>
+
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
             <Pagination count={1} shape="rounded" color="primary" size="small" />
           </Box>

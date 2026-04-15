@@ -1,184 +1,343 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, Grid, TextField, InputAdornment, IconButton, Divider, CssBaseline, CircularProgress } from '@mui/material';
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import LanguageIcon from '@mui/icons-material/Language';
+import { useState, useEffect, useMemo } from "react";
+import { Snackbar, Alert, ThemeProvider, CssBaseline, Fab, Box } from "@mui/material";
+import Brightness4Icon from "@mui/icons-material/Brightness4";
+import Brightness7Icon from "@mui/icons-material/Brightness7";
 
-// ADICIONADO: erroServidor nas props (LLW-142)
-function Cadastro({ aoVoltar, aoSalvarCadastro, erroServidor }) {
-  const [mostrarSenha, setMostrarSenha] = useState(false);
-  
-  const [nome, setNome] = useState("");
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [carregando, setCarregando] = useState(false);
-  
-  // ESTADOS PARA VALIDAÇÃO (LLW-141)
-  const [erros, setErros] = useState({ nome: false, email: false, senha: false });
-  const [mensagensErro, setMensagensErro] = useState({ nome: "", email: "", senha: "" });
+import { obterTemaNupreco } from "./theme";
 
-  // --- MONITORAR ERROS DO SERVIDOR (LLW-142) ---
+import Inicio from "./inicio";
+import VendaConsulta from "./VendaConsulta";
+import PdvRapido from "./PdvRapido";
+import BemVindo from "./BemVindo";
+import Cadastro from "./Cadastro";
+import Login from "./entrar";
+import Produto from "./Produto";
+import Estoque from "./Estoque";
+import Contas from "./Contas";
+import Usuarios from "./Usuarios";
+
+function App() {
+  const carregar = (chave, valorPadrao) => {
+    const salvo = localStorage.getItem(chave);
+    return salvo ? JSON.parse(salvo) : valorPadrao;
+  };
+
+  const [modoEscuro, setModoEscuro] = useState(() => carregar("nupreco_tema", false));
+  const temaAtivo = useMemo(
+    () => obterTemaNupreco(modoEscuro ? "dark" : "light"),
+    [modoEscuro]
+  );
+
+  const alternarTema = () => {
+    setModoEscuro((prev) => {
+      const novo = !prev;
+      localStorage.setItem("nupreco_tema", JSON.stringify(novo));
+      return novo;
+    });
+  };
+
+  const [telaAtiva, setTelaAtiva] = useState("bemvindo");
+  const [logado, setLogado] = useState(false);
+  const [subTela, setSubTela] = useState("menu");
+  const [usuarioLogado, setUsuarioLogado] = useState("");
+  const [produtosCadastrados, setProdutosCadastrados] = useState(() =>
+    carregar("nupreco_produtos", [])
+  );
+  const [historicoVendas, setHistoricoVendas] = useState(() =>
+    carregar("nupreco_vendas", [])
+  );
+  const [usuarioCadastrado, setUsuarioCadastrado] = useState(() =>
+    carregar("nupreco_usuario", null)
+  );
+  const [contasCadastradas, setContasCadastradas] = useState(() =>
+    carregar("nupreco_contas", [])
+  );
+  const [usuariosLista, setUsuariosLista] = useState(() =>
+    carregar("nupreco_usuarios_lista", [])
+  );
+  const [estaCarregando] = useState(false);
+  const [notificacao, setNotificacao] = useState({
+    aberto: false,
+    mensagem: "",
+    tipo: "success",
+  });
+
+  const mostrarMensagem = (msg, tipo = "success") =>
+    setNotificacao({ aberto: true, mensagem: msg, tipo });
+
   useEffect(() => {
-    if (erroServidor && erroServidor.fields) {
-      const novosErros = { nome: false, email: false, senha: false };
-      const novasMensagens = { nome: "", email: "", senha: "" };
+    localStorage.setItem("nupreco_produtos", JSON.stringify(produtosCadastrados));
+  }, [produtosCadastrados]);
 
-      // Mapeia os erros que vem do ProblemDetail do Java
-      erroServidor.fields.forEach(f => {
-        if (novosErros.hasOwnProperty(f.name)) {
-          novosErros[f.name] = true;
-          novasMensagens[f.name] = f.userMessage;
-        }
-      });
+  useEffect(() => {
+    localStorage.setItem("nupreco_vendas", JSON.stringify(historicoVendas));
+  }, [historicoVendas]);
 
-      setErros(novosErros);
-      setMensagensErro(novasMensagens);
-      setCarregando(false);
-    }
-  }, [erroServidor]);
+  useEffect(() => {
+    localStorage.setItem("nupreco_contas", JSON.stringify(contasCadastradas));
+  }, [contasCadastradas]);
 
-  const validarEmail = (email) => {
-    return /\S+@\S+\.\S+/.test(email);
+  useEffect(() => {
+    localStorage.setItem("nupreco_usuario", JSON.stringify(usuarioCadastrado));
+  }, [usuarioCadastrado]);
+
+  useEffect(() => {
+    localStorage.setItem("nupreco_usuarios_lista", JSON.stringify(usuariosLista));
+  }, [usuariosLista]);
+
+  const handleLogout = () => {
+    setLogado(false);
+    setTelaAtiva("login");
+    setSubTela("menu");
+    mostrarMensagem("Sessão encerrada.", "info");
   };
 
-  const lidarComCadastro = () => {
-    const novosErros = {
-      nome: !nome,
-      email: !email || !validarEmail(email),
-      senha: !senha || senha.length < 6
-    };
-
-    const novasMensagens = {
-      nome: novosErros.nome ? "O nome é obrigatório" : "",
-      email: novosErros.email ? (!email ? "E-mail obrigatório" : "Formato de e-mail inválido") : "",
-      senha: novosErros.senha ? (!senha ? "A senha é obrigatória" : "Mínimo de 6 caracteres") : ""
-    };
-
-    setErros(novosErros);
-    setMensagensErro(novasMensagens);
-
-    if (!novosErros.nome && !novosErros.email && !novosErros.senha) {
-      setCarregando(true);
-      // O App.js cuidará do redirecionamento (LLW-143)
-      aoSalvarCadastro({ nome, email, senha });
-    }
+  const salvarProduto = (produto) => {
+    setProdutosCadastrados((prev) => {
+      const existe = prev.some((p) => p.id === produto.id || p.cod === produto.cod);
+      if (existe) {
+        return prev.map((p) =>
+          p.id === produto.id || p.cod === produto.cod ? { ...p, ...produto } : p
+        );
+      }
+      return [produto, ...prev];
+    });
+    mostrarMensagem("Produto salvo com sucesso!");
   };
+
+  const excluirProduto = (idOuCodigo) => {
+    setProdutosCadastrados((prev) =>
+      prev.filter((p) => p.id !== idOuCodigo && p.cod !== idOuCodigo)
+    );
+    mostrarMensagem("Produto removido com sucesso.", "info");
+  };
+
+  const atualizarQtdProduto = (codigo, novaQtd) => {
+    setProdutosCadastrados((prev) =>
+      prev.map((p) => (p.cod === codigo ? { ...p, qtd: novaQtd } : p))
+    );
+  };
+
+  const salvarConta = (conta) => {
+    setContasCadastradas((prev) => {
+      const existe = prev.some((c) => c.id === conta.id);
+      if (existe) {
+        return prev.map((c) => (c.id === conta.id ? { ...c, ...conta } : c));
+      }
+      return [conta, ...prev];
+    });
+    mostrarMensagem("Conta salva com sucesso!");
+  };
+
+  const excluirConta = (id) => {
+    setContasCadastradas((prev) => prev.filter((c) => c.id !== id));
+    mostrarMensagem("Conta removida com sucesso.", "info");
+  };
+
+  const salvarUsuario = (usuario) => {
+    setUsuariosLista((prev) => {
+      const existe = prev.some((u) => u.id === usuario.id || u.email === usuario.email);
+      if (existe) {
+        return prev.map((u) =>
+          u.id === usuario.id || u.email === usuario.email
+            ? { ...u, ...usuario, senha: usuario.senha ? usuario.senha : u.senha }
+            : u
+        );
+      }
+      return [usuario, ...prev];
+    });
+    mostrarMensagem("Usuário salvo com sucesso!");
+  };
+
+  const excluirUsuario = (id) => {
+    setUsuariosLista((prev) => prev.filter((u) => u.id !== id));
+    mostrarMensagem("Usuário removido com sucesso.", "info");
+  };
+
+  const registrarVenda = (venda) => {
+    setHistoricoVendas((prev) => [{ id: `VENDA-${prev.length + 1}`, ...venda }, ...prev]);
+    mostrarMensagem("Venda realizada!");
+  };
+
+  const hoje = new Date().toISOString().split("T")[0];
+  const contasDoDia = contasCadastradas.filter(
+    (c) => c.dataVencimento === hoje && !c.paga
+  );
 
   return (
-    <>
+    <ThemeProvider theme={temaAtivo}>
       <CssBaseline />
-      <Grid container sx={{ height: '100vh', width: '100vw', m: 0, p: 0 }}>
-        
-        <Grid item xs={12} md={6} sx={{ 
-          display: 'flex', flexDirection: 'column', justifyContent: 'space-between', 
-          alignItems: 'center', p: 6, bgcolor: 'white' 
-        }}>
-          
-          <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100%', maxWidth: '400px' }}>
-            
-            <Typography variant="h3" sx={{ color: '#128654', fontWeight: 'bold', mb: 1 }}>
-              NuPreço
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#999', mb: 4, textAlign: 'center' }}>
-              Crie sua conta para começar a gerenciar seus preços
-            </Typography>
 
-            <TextField 
-              fullWidth 
-              label="NOME COMPLETO" 
-              variant="outlined" 
-              required
-              error={erros.nome}
-              helperText={mensagensErro.nome}
-              onChange={(e) => {
-                setNome(e.target.value);
-                if(erros.nome) setErros({...erros, nome: false});
-              }}
-              sx={{ mb: 2, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#128654' } } }} 
+      <Box sx={{ position: "fixed", bottom: 20, right: 20, zIndex: 9999 }}>
+        <Fab color="primary" onClick={alternarTema} size="medium">
+          {modoEscuro ? <Brightness7Icon /> : <Brightness4Icon />}
+        </Fab>
+      </Box>
+
+      {!logado ? (
+        <>
+          {telaAtiva === "bemvindo" && (
+            <BemVindo
+              aoClicarCriar={() => setTelaAtiva("cadastro")}
+              aoClicarEntrar={() => setTelaAtiva("login")}
             />
-            
-            <TextField 
-              fullWidth 
-              label="E-MAIL" 
-              variant="outlined" 
-              required
-              type="email"
-              error={erros.email}
-              helperText={erros.email ? mensagensErro.email : "Ex: contato@nupreco.com.br"}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if(erros.email) setErros({...erros, email: false});
+          )}
+
+          {telaAtiva === "cadastro" && (
+            <Cadastro
+              aoVoltar={() => setTelaAtiva("bemvindo")}
+              aoSalvarCadastro={(dados) => {
+                const novoUsuario = { id: "ADMIN_ROOT", ...dados };
+                setUsuarioCadastrado(dados);
+                setUsuariosLista([novoUsuario]);
+                setUsuarioLogado(dados.nome);
+                setLogado(true);
+                setSubTela("menu");
+                mostrarMensagem("Conta criada!");
               }}
-              sx={{ mb: 2, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#128654' } } }} 
+              aoNotificar={mostrarMensagem}
             />
+          )}
 
-            <TextField 
-              fullWidth 
-              label="SENHA" 
-              type={mostrarSenha ? 'text' : 'password'} 
-              variant="outlined"
-              required
-              error={erros.senha}
-              helperText={erros.senha ? mensagensErro.senha : "Mínimo 6 caracteres"}
-              onChange={(e) => {
-                setSenha(e.target.value);
-                if(erros.senha) setErros({...erros, senha: false});
+          {telaAtiva === "login" && (
+            <Login
+              aoVoltar={() => setTelaAtiva("bemvindo")}
+              listaUsuarios={usuariosLista}
+              onLogin={(nome) => {
+                setUsuarioLogado(nome);
+                setLogado(true);
+                setSubTela("menu");
               }}
-              onKeyPress={(e) => { if (e.key === 'Enter') lidarComCadastro(); }}
-              sx={{ mb: 3, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#128654' } } }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setMostrarSenha(!mostrarSenha)}>
-                      {mostrarSenha ? <Visibility /> : <VisibilityOff />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
+              aoNotificar={mostrarMensagem}
             />
+          )}
+        </>
+      ) : (
+        <>
+          {subTela === "menu" && (
+            <Inicio
+              onLogout={handleLogout}
+              perfilUsuario={
+                usuarioLogado === usuarioCadastrado?.nome ? "ADMINISTRADOR" : "FUNCIONÁRIO"
+              }
+              aoClicarVendas={() => setSubTela("vendas")}
+              aoClicarPdv={() => setSubTela("pdv")}
+              aoClicarProdutos={() => setSubTela("produto")}
+              aoClicarEstoque={() => setSubTela("estoque")}
+              aoClicarContas={() => setSubTela("contas")}
+              aoClicarUsuarios={() => setSubTela("usuarios")}
+              listaContasDoDia={contasDoDia}
+            />
+          )}
 
-            <Button 
-              variant="contained" 
-              fullWidth 
-              onClick={lidarComCadastro}
-              disabled={carregando} 
-              sx={{ bgcolor: '#128654', '&:hover': { bgcolor: '#0e6b43' }, py: 1.5, textTransform: 'none', fontWeight: 'bold', borderRadius: '8px' }}
-            >
-              {carregando ? <CircularProgress size={24} color="inherit" /> : "Criar nova conta"}
-            </Button>
+          {subTela === "pdv" && (
+            <PdvRapido
+              onBack={() => setSubTela("menu")}
+              onLogout={handleLogout}
+              onRegistrarVenda={registrarVenda}
+              nomeVendedor={usuarioLogado}
+              estoque={produtosCadastrados}
+              carregando={estaCarregando}
+              aoNotificar={mostrarMensagem}
+              aoIrVendas={() => setSubTela("vendas")}
+              aoIrUsuarios={() => setSubTela("usuarios")}
+              aoIrProdutos={() => setSubTela("produto")}
+              aoIrEstoque={() => setSubTela("estoque")}
+              aoIrContas={() => setSubTela("contas")}
+            />
+          )}
 
-            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', my: 3 }}>
-              <Divider sx={{ flexGrow: 1 }} />
-              <Typography variant="body2" sx={{ mx: 2, color: '#999' }}>ou</Typography>
-              <Divider sx={{ flexGrow: 1 }} />
-            </Box>
+          {subTela === "estoque" && (
+            <Estoque
+              produtos={produtosCadastrados}
+              onBack={() => setSubTela("menu")}
+              onLogout={handleLogout}
+              aoAtualizarQtd={atualizarQtdProduto}
+              aoNotificar={mostrarMensagem}
+              aoIrVendas={() => setSubTela("vendas")}
+              aoIrUsuarios={() => setSubTela("usuarios")}
+              aoIrProdutos={() => setSubTela("produto")}
+              aoIrPdv={() => setSubTela("pdv")}
+              aoIrContas={() => setSubTela("contas")}
+            />
+          )}
 
-            <Button 
-              variant="outlined" fullWidth 
-              startIcon={<img src="https://www.google.com/favicon.ico" width="20" alt="google" />} 
-              sx={{ color: '#15181E', borderColor: '#DDD', py: 1.2, textTransform: 'none', borderRadius: '8px' }}
-            >
-              Continue with Google
-            </Button>
+          {subTela === "contas" && (
+            <Contas
+              onBack={() => setSubTela("menu")}
+              onLogout={handleLogout}
+              aoSalvarConta={salvarConta}
+              aoExcluirConta={excluirConta}
+              contasCadastradas={contasCadastradas}
+              aoNotificar={mostrarMensagem}
+              aoIrVendas={() => setSubTela("vendas")}
+              aoIrUsuarios={() => setSubTela("usuarios")}
+              aoIrProdutos={() => setSubTela("produto")}
+              aoIrPdv={() => setSubTela("pdv")}
+              aoIrEstoque={() => setSubTela("estoque")}
+            />
+          )}
 
-            <Button onClick={aoVoltar} sx={{ mt: 2, color: '#128654', textTransform: 'none', fontWeight: 'bold' }}>
-              Já tem uma conta? Entrar
-            </Button>
-          </Box>
+          {subTela === "produto" && (
+            <Produto
+              onBack={() => setSubTela("menu")}
+              onLogout={handleLogout}
+              onSalvarProduto={salvarProduto}
+              aoExcluirProduto={excluirProduto}
+              produtosCadastrados={produtosCadastrados}
+              aoClicarEstoque={() => setSubTela("estoque")}
+              aoNotificar={mostrarMensagem}
+              aoIrVendas={() => setSubTela("vendas")}
+              aoIrUsuarios={() => setSubTela("usuarios")}
+              aoIrPdv={() => setSubTela("pdv")}
+              aoIrContas={() => setSubTela("contas")}
+            />
+          )}
 
-          <Box sx={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <LanguageIcon fontSize="small" sx={{ color: '#363F4D' }} />
-            <Typography variant="caption" sx={{ color: '#363F4D', fontWeight: 'bold' }}>PT</Typography>
-          </Box>
-        </Grid>
+          {subTela === "usuarios" && (
+            <Usuarios
+              onBack={() => setSubTela("menu")}
+              usuariosCadastrados={usuariosLista}
+              aoSalvarUsuario={salvarUsuario}
+              aoExcluirUsuario={excluirUsuario}
+              usuarioLogado={usuarioLogado}
+              aoNotificar={mostrarMensagem}
+              onLogout={handleLogout}
+              aoIrVendas={() => setSubTela("vendas")}
+              aoIrProdutos={() => setSubTela("produto")}
+              aoIrPdv={() => setSubTela("pdv")}
+              aoIrContas={() => setSubTela("contas")}
+              aoIrEstoque={() => setSubTela("estoque")}
+            />
+          )}
 
-        <Grid item xs={0} md={6} sx={{ 
-          bgcolor: '#128654', display: { xs: 'none', md: 'flex' }, height: '100vh', m: 0, p: 0
-        }} />
-        
-      </Grid>
-    </>
+          {subTela === "vendas" && (
+            <VendaConsulta
+              onBack={() => setSubTela("menu")}
+              onLogout={handleLogout}
+              historicoVendas={historicoVendas}
+              aoIrUsuarios={() => setSubTela("usuarios")}
+              aoIrProdutos={() => setSubTela("produto")}
+              aoIrPdv={() => setSubTela("pdv")}
+              aoIrContas={() => setSubTela("contas")}
+              aoIrEstoque={() => setSubTela("estoque")}
+            />
+          )}
+        </>
+      )}
+
+      <Snackbar
+        open={notificacao.aberto}
+        autoHideDuration={4000}
+        onClose={() => setNotificacao((prev) => ({ ...prev, aberto: false }))}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert severity={notificacao.tipo} variant="filled">
+          {notificacao.mensagem}
+        </Alert>
+      </Snackbar>
+    </ThemeProvider>
   );
 }
 
-export default Cadastro;
+export default App;
