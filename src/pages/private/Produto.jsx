@@ -33,7 +33,7 @@ import EditIcon from '@mui/icons-material/EditOutlined';
 import ListAltIcon from '@mui/icons-material/ListAltOutlined';
 import SaveIcon from '@mui/icons-material/Save';
 
-import SidebarMenu from './components/SidebarMenu';
+import SidebarMenu from '../../components/SidebarMenu';
 
 const categoriasPadrao = ['ALIMENTOS', 'BEBIDAS', 'LIMPEZA', 'UTILIDADES', 'GERAL'];
 

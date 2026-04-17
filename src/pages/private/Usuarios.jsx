@@ -32,7 +32,8 @@ import SaveIcon from '@mui/icons-material/SaveOutlined';
 import AddIcon from '@mui/icons-material/Add';
 import ShieldIcon from '@mui/icons-material/ShieldOutlined';
 import SearchIcon from '@mui/icons-material/Search';
-import SidebarMenu from './components/SidebarMenu';
+
+import SidebarMenu from '../../components/SidebarMenu';
 
 const Usuarios = ({
   onBack,

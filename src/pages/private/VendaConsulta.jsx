@@ -25,7 +25,8 @@ import CategoryIcon from '@mui/icons-material/CategoryOutlined';
 import LogoutIcon from '@mui/icons-material/ExitToAppOutlined';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import DesktopWindowsIcon from '@mui/icons-material/DesktopWindowsOutlined';
-import SidebarMenu from './components/SidebarMenu';
+
+import SidebarMenu from '../../components/SidebarMenu';
 
 const formatarMoeda = (valor) =>
   Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });

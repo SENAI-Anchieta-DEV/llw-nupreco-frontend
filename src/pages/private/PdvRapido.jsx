@@ -33,7 +33,7 @@ import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import DeleteIcon from '@mui/icons-material/DeleteOutline';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCartOutlined';
 
-import SidebarMenu from './components/SidebarMenu';
+import SidebarMenu from '../../components/SidebarMenu';
 
 const PdvRapido = ({
   onBack,
