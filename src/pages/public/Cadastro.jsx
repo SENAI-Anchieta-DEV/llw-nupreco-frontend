@@ -3,20 +3,19 @@ import { Snackbar, Alert, ThemeProvider, CssBaseline, Fab, Box } from "@mui/mate
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 
-import { obterTemaNupreco } from "./theme";
+import { obterTemaNupreco } from "../../utils/theme";
 
-import Inicio from "./inicio";
-import VendaConsulta from "./VendaConsulta";
-import PdvRapido from "./PdvRapido";
+import Inicio from "../private/inicio";
+import VendaConsulta from "../private/VendaConsulta";
+import PdvRapido from "../private/PdvRapido";
 import BemVindo from "./BemVindo";
-import Cadastro from "./Cadastro";
-import Login from "./entrar";
-import Produto from "./Produto";
-import Estoque from "./Estoque";
-import Contas from "./Contas";
-import Usuarios from "./Usuarios";
+import Logar from "./Logar";
+import Produto from "../private/Produto";
+import Estoque from "../private/Estoque";
+import Contas from "../private/Contas";
+import Usuarios from "../private/Usuarios";
 
-function App() {
+function Cadastro() {
   const carregar = (chave, valorPadrao) => {
     const salvo = localStorage.getItem(chave);
     return salvo ? JSON.parse(salvo) : valorPadrao;
@@ -200,7 +199,7 @@ function App() {
           )}
 
           {telaAtiva === "login" && (
-            <Login
+            <Logar
               aoVoltar={() => setTelaAtiva("bemvindo")}
               listaUsuarios={usuariosLista}
               onLogin={(nome) => {
@@ -340,4 +339,4 @@ function App() {
   );
 }
 
-export default App;
+export default Cadastro;

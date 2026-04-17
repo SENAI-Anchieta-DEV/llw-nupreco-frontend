@@ -1,12 +1,17 @@
 import React from 'react';
-import { Box, Typography, Grid, CssBaseline, useTheme } from '@mui/material';
+import { Box, Typography, Grid, CssBaseline } from '@mui/material';
 import LanguageIcon from '@mui/icons-material/Language';
 
-const AccessLayout = ({ title, subtitle, children }) => {
-  const theme = useTheme();
-
+const PublicLayout = ({ title, subtitle, children }) => {
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: 'background.default',
+      }}
+    >
       <CssBaseline />
 
       <Grid
@@ -17,7 +22,7 @@ const AccessLayout = ({ title, subtitle, children }) => {
           width: '100vw',
           m: 0,
           p: 0,
-          overflow: 'hidden'
+          overflow: 'hidden',
         }}
       >
         <Grid
@@ -31,7 +36,7 @@ const AccessLayout = ({ title, subtitle, children }) => {
             alignItems: 'center',
             p: 4,
             bgcolor: 'background.paper',
-            minHeight: '100vh'
+            minHeight: '100vh',
           }}
         >
           <Box
@@ -41,7 +46,7 @@ const AccessLayout = ({ title, subtitle, children }) => {
               flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'center',
-              width: '100%'
+              width: '100%',
             }}
           >
             <Typography
@@ -50,16 +55,20 @@ const AccessLayout = ({ title, subtitle, children }) => {
                 color: '#128654',
                 fontWeight: 'bold',
                 fontSize: '4.5rem',
-                mb: 2
+                mb: 2,
               }}
             >
               NuPreço
             </Typography>
 
             <Box sx={{ textAlign: 'center', mb: 4 }}>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: 'bold', color: 'text.primary' }}
+              >
                 {title}
               </Typography>
+
               {subtitle && (
                 <Typography
                   variant="body2"
@@ -67,7 +76,7 @@ const AccessLayout = ({ title, subtitle, children }) => {
                     color: 'text.secondary',
                     maxWidth: '320px',
                     mt: 1,
-                    textAlign: 'center'
+                    textAlign: 'center',
                   }}
                 >
                   {subtitle}
@@ -75,12 +84,25 @@ const AccessLayout = ({ title, subtitle, children }) => {
               )}
             </Box>
 
-            <Box sx={{ width: '100%', maxWidth: '400px' }}>{children}</Box>
+            <Box sx={{ width: '100%', maxWidth: '400px' }}>
+              {children}
+            </Box>
           </Box>
 
-          <Box sx={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 0.5, mt: 2 }}>
+          <Box
+            sx={{
+              alignSelf: 'flex-start',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+              mt: 2,
+            }}
+          >
             <LanguageIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
+            <Typography
+              variant="caption"
+              sx={{ color: 'text.secondary', fontWeight: 'bold' }}
+            >
               PT
             </Typography>
           </Box>
@@ -99,22 +121,32 @@ const AccessLayout = ({ title, subtitle, children }) => {
             color: 'white',
             p: 6,
             textAlign: 'center',
-            minHeight: '100vh'
+            minHeight: '100vh',
           }}
         >
           <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2 }}>
             Venda com eficiência, onde você estiver
           </Typography>
-          <Typography variant="body1" sx={{ maxWidth: '500px', mb: 6, opacity: 0.9 }}>
-            Gestão moderna e ágil para microempreendedores que buscam mais controle, mais
-            organização e mais lucro, com a simplicidade e eficiência que o dia a dia exige.
+
+          <Typography
+            variant="body1"
+            sx={{ maxWidth: '500px', mb: 6, opacity: 0.9 }}
+          >
+            Gestão moderna e ágil para microempreendedores que buscam mais
+            controle, mais organização e mais lucro, com a simplicidade e
+            eficiência que o dia a dia exige.
           </Typography>
 
-          <Box component="img" src="EXEMPLODESISTEMA.png" sx={{ width: '85%', maxWidth: '500px' }} />
+          <Box
+            component="img"
+            src="/EXEMPLODESISTEMA.png"
+            alt="Imagem ilustrativa do sistema NuPreço"
+            sx={{ width: '85%', maxWidth: '500px' }}
+          />
         </Grid>
       </Grid>
     </Box>
   );
 };
 
-export default AccessLayout;
+export default PublicLayout;
