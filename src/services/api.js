@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getToken, clearSession } from '../utils/token';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: 'https://llw-nupreco-backend-api.onrender.com/',
   headers: {
     'Content-Type': 'application/json',
   },

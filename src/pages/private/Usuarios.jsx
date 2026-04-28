@@ -18,7 +18,7 @@ import {
   useTheme
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
-import PersonIcon from '@mui/icons-material/PersonOutline';
+import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
 import AssessmentIcon from '@mui/icons-material/AssessmentOutlined';
 import StorefrontIcon from '@mui/icons-material/StorefrontOutlined';
 import ReportProblemIcon from '@mui/icons-material/WarningAmber';
@@ -56,7 +56,7 @@ const Usuarios = ({
 
   const modulos = [
     { text: 'Início', icon: <HomeIcon />, action: onBack },
-    { text: 'Usuário', icon: <PersonIcon /> },
+    { text: 'Usuário', icon: <PersonOutlineOutlinedIcon /> },
     { text: 'Vendas', icon: <AssessmentIcon />, action: aoIrVendas },
     { text: 'Pdv Rápido', icon: <StorefrontIcon />, action: aoIrPdv },
     { text: 'Contas', icon: <ReportProblemIcon />, action: aoIrContas },

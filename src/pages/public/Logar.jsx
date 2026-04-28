@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import { Box, Button, TextField, Typography } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
-import { Login } from '@mui/icons-material';
 
-function Logar () {
+function Logar() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const [form, setForm] = useState({
-    email: '',
+    nome: '',
     senha: '',
   });
 
@@ -31,10 +30,10 @@ function Logar () {
     setLoading(true);
 
     try {
-      await login(form.email, form.senha);
+      await login(form.nome, form.senha);
       navigate('/inicio');
     } catch (error) {
-      setErro('E-mail ou senha inválidos.');
+      setErro('Nome ou senha inválidos.');
     } finally {
       setLoading(false);
     }
@@ -44,10 +43,10 @@ function Logar () {
     <Box component="form" onSubmit={handleSubmit}>
       <TextField
         fullWidth
-        label="E-mail"
-        name="email"
-        type="email"
-        value={form.email}
+        label="Nome"
+        name="nome"
+        type="text"
+        value={form.nome}
         onChange={handleChange}
         margin="normal"
         required
@@ -85,6 +84,6 @@ function Logar () {
       </Typography>
     </Box>
   );
-};
+}
 
 export default Logar;
