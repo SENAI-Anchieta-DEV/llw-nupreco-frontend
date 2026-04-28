@@ -10,7 +10,6 @@ import {
 const normalizeUser = (data) => {
   if (!data) return null;
 
-  // Caso a API devolva o user dentro de "user"
   if (data.user) {
     return {
       id: data.user.id,
@@ -20,7 +19,6 @@ const normalizeUser = (data) => {
     };
   }
 
-  // Caso a API devolva os campos direto na raiz
   return {
     id: data.id,
     nome: data.nome,
@@ -34,9 +32,9 @@ const getTokenFromResponse = (data) => {
 };
 
 const authService = {
-  async login(email, senha) {
+  async login(nome, senha) {
     const response = await api.post('/auth/login', {
-      email,
+      nome,
       senha,
     });
 

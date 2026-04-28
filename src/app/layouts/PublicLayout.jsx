@@ -1,136 +1,152 @@
-import React from 'react';
-import { Box, Typography, Grid, CssBaseline } from '@mui/material';
-import LanguageIcon from '@mui/icons-material/Language';
+import React from "react";
+import {
+  Box,
+  Typography,
+  CssBaseline,
+  Container,
+} from "@mui/material";
 
 const PublicLayout = ({ title, subtitle, children }) => {
+  const verde = "#128654";
+
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        bgcolor: 'background.default',
-      }}
-    >
+    <>
       <CssBaseline />
 
-      <Grid
-        container
-        spacing={0}
+      <Box
         sx={{
-          minHeight: '100vh',
-          width: '100vw',
-          m: 0,
-          p: 0,
-          overflow: 'hidden',
+          minHeight: "100vh",
+          bgcolor: "#F8F9F8",
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
         }}
       >
-        <Grid
-          item
-          xs={12}
-          md={6}
+        {/* LADO ESQUERDO */}
+        <Box
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            p: 4,
-            bgcolor: 'background.paper',
-            minHeight: '100vh',
+            width: { xs: "100%", md: "50%" },
+            minHeight: "100vh",
+            bgcolor: "#fff",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            px: { xs: 3, md: 6 },
+            py: { xs: 5, md: 0 },
           }}
         >
-          <Box
-            sx={{
-              flexGrow: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-              width: '100%',
-            }}
-          >
-            <Typography
-              variant="h2"
-              sx={{
-                color: '#128654',
-                fontWeight: 'bold',
-                fontSize: '4.5rem',
-                mb: 2,
-              }}
-            >
-              NuPreço
-            </Typography>
-
-            <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Container maxWidth="sm">
+            <Box sx={{ width: "100%" }}>
               <Typography
-                variant="h6"
-                sx={{ fontWeight: 'bold', color: 'text.primary' }}
+                sx={{
+                  color: verde,
+                  fontWeight: 800,
+                  fontSize: { xs: "2.3rem", md: "3.5rem" },
+                  textAlign: "center",
+                  mb: 1,
+                }}
               >
-                {title}
+                NuPreço
               </Typography>
+
+              {title && (
+                <Typography
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: "1.6rem",
+                    textAlign: "center",
+                    color: "#111",
+                    mb: 1,
+                  }}
+                >
+                  {title}
+                </Typography>
+              )}
 
               {subtitle && (
                 <Typography
-                  variant="body2"
                   sx={{
-                    color: 'text.secondary',
-                    maxWidth: '320px',
-                    mt: 1,
-                    textAlign: 'center',
+                    textAlign: "center",
+                    color: "#666",
+                    fontSize: ".95rem",
+                    mb: 4,
+                    maxWidth: "420px",
+                    mx: "auto",
                   }}
                 >
                   {subtitle}
                 </Typography>
               )}
+
+              <Box sx={{ width: "100%" }}>{children}</Box>
+
+              <Box
+                sx={{
+                  mt: 4,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 0.7,
+                }}
+              >
+                <Typography
+                  component="span"
+                  sx={{
+                    fontSize: 18,
+                    color: "#777",
+                    lineHeight: 1,
+                  }}
+                >
+                  🌐
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: ".85rem",
+                    color: "#777",
+                    fontWeight: 700,
+                  }}
+                >
+                  PT-BR
+                </Typography>
+              </Box>
             </Box>
+          </Container>
+        </Box>
 
-            <Box sx={{ width: '100%', maxWidth: '400px' }}>
-              {children}
-            </Box>
-          </Box>
-
-          <Box
-            sx={{
-              alignSelf: 'flex-start',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.5,
-              mt: 2,
-            }}
-          >
-            <LanguageIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-            <Typography
-              variant="caption"
-              sx={{ color: 'text.secondary', fontWeight: 'bold' }}
-            >
-              PT
-            </Typography>
-          </Box>
-        </Grid>
-
-        <Grid
-          item
-          xs={0}
-          md={6}
+        {/* LADO DIREITO */}
+        <Box
           sx={{
-            bgcolor: '#128654',
-            display: { xs: 'none', md: 'flex' },
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            color: 'white',
+            width: { xs: "100%", md: "50%" },
+            minHeight: "100vh",
+            display: { xs: "none", md: "flex" },
+            bgcolor: verde,
+            color: "#fff",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            textAlign: "center",
             p: 6,
-            textAlign: 'center',
-            minHeight: '100vh',
           }}
         >
-          <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2 }}>
+          <Typography
+            sx={{
+              fontWeight: 800,
+              fontSize: "2.4rem",
+              mb: 2,
+              maxWidth: "520px",
+            }}
+          >
             Venda com eficiência, onde você estiver
           </Typography>
 
           <Typography
-            variant="body1"
-            sx={{ maxWidth: '500px', mb: 6, opacity: 0.9 }}
+            sx={{
+              fontSize: "1rem",
+              opacity: 0.95,
+              maxWidth: "500px",
+              mb: 6,
+              lineHeight: 1.7,
+            }}
           >
             Gestão moderna e ágil para microempreendedores que buscam mais
             controle, mais organização e mais lucro, com a simplicidade e
@@ -140,12 +156,17 @@ const PublicLayout = ({ title, subtitle, children }) => {
           <Box
             component="img"
             src="/EXEMPLODESISTEMA.png"
-            alt="Imagem ilustrativa do sistema NuPreço"
-            sx={{ width: '85%', maxWidth: '500px' }}
+            alt="Sistema NuPreço"
+            sx={{
+              width: "100%",
+              maxWidth: "540px",
+              borderRadius: "18px",
+              boxShadow: "0 25px 50px rgba(0,0,0,.18)",
+            }}
           />
-        </Grid>
-      </Grid>
-    </Box>
+        </Box>
+      </Box>
+    </>
   );
 };
 

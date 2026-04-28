@@ -18,7 +18,7 @@ import {
 import InventoryIcon from '@mui/icons-material/AllInbox';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import RemoveCircleOutlineOutlinedIcon from '@mui/icons-material/RemoveCircleOutlineOutlined';
 
 const Estoque = ({
   produtos = [],

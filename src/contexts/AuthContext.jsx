@@ -22,8 +22,8 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (email, senha) => {
-    const loggedUser = await authService.login(email, senha);
+  const login = async (nome, senha) => {
+    const loggedUser = await authService.login(nome, senha);
     setUser(loggedUser);
     return loggedUser;
   };
