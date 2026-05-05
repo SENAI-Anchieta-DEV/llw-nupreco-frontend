@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import api from "../../services/api";
 import {
   Box,
   TextField,
@@ -29,34 +30,66 @@ function Cadastro() {
     });
   };
 
-  const salvarCadastro = () => {
-    setErro("");
-    setSucesso("");
+const salvarCadastro = async () => {
 
-    if (!dados.nome || !dados.email || !dados.senha || !dados.confirmarSenha) {
-      setErro("Preencha todos os campos.");
-      return;
-    }
+  setErro("");
 
-    if (dados.senha !== dados.confirmarSenha) {
-      setErro("As senhas não coincidem.");
-      return;
-    }
+  setSucesso("");
+ 
+  if (!dados.nome || !dados.email || !dados.senha || !dados.confirmarSenha) {
 
-    const usuario = {
-      nome: dados.nome,
-      email: dados.email,
-      senha: dados.senha,
-    };
+    setErro("Preencha todos os campos.");
 
-    localStorage.setItem("usuario_nupreco", JSON.stringify(usuario));
+    return;
 
-    setSucesso("Conta criada com sucesso!");
+  }
+ 
+  if (dados.senha !== dados.confirmarSenha) {
 
-    setTimeout(() => {
-      navigate("/entrar");
-    }, 1500);
+    setErro("As senhas não coincidem.");
+
+    return;
+
+  }
+ 
+  const usuario = {
+
+    nome: dados.nome,
+
+    email: dados.email,
+
+    senha: dados.senha,
+
   };
+ 
+  try {
+
+    await api.post("/usuarios/gestor", usuario);
+ 
+    setSucesso("Conta criada com sucesso!");
+ 
+    setTimeout(() => {
+
+      navigate("/entrar");
+
+    }, 1500);
+
+  } catch (error) {
+
+    setErro(
+
+      error.response?.data?.message ||
+
+        error.response?.data?.detail ||
+
+        "Não foi possível criar a conta."
+
+    );
+
+  }
+
+};
+ 
 
   return (
     <Box>
