@@ -33,24 +33,30 @@ const getTokenFromResponse = (data) => {
 
 const authService = {
   async login(nome, senha) {
-    const response = await api.post('/auth/login', {
-      nome,
-      senha,
-    });
 
-    const data = response.data;
-    const token = getTokenFromResponse(data);
-    const user = normalizeUser(data);
+  const response = await api.post('/auth/login', {
+    nome,
+    senha,
 
-    if (!token || !user) {
-      throw new Error('Resposta de autenticação inválida.');
-    }
+  });
+ 
+  const data = response.data?.data;
+ 
+  const token = getTokenFromResponse(data);
 
-    setToken(token);
-    setStoredUser(user);
+  const user = normalizeUser(data);
+ 
+  if (!token || !user) {
 
-    return user;
-  },
+    throw new Error('Resposta de autenticação inválida.');
+
+  }
+  setToken(token);
+  setStoredUser(user);
+ 
+  return user;
+},
+ 
 
   logout() {
     clearSession();

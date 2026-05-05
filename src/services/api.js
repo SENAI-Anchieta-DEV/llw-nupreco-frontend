@@ -11,11 +11,20 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = getToken();
-
-    if (token) {
+ 
+    const publicRoutes = [
+      "/auth/login",
+      "/usuarios/gestor",
+    ];
+ 
+    const isPublicRoute = publicRoutes.some((route) =>
+      config.url?.includes(route)
+    );
+ 
+    if (token && !isPublicRoute) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
+ 
     return config;
   },
   (error) => Promise.reject(error)
