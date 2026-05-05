@@ -7,16 +7,53 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Typography
+  Typography,
 } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-const SidebarMenu = ({ modulos = [] }) => {
+import MenuIcon from '@mui/icons-material/Menu';
+import HomeIcon from '@mui/icons-material/HomeOutlined';
+import PersonIcon from '@mui/icons-material/PersonOutline';
+import AssessmentIcon from '@mui/icons-material/AssessmentOutlined';
+import StorefrontIcon from '@mui/icons-material/StorefrontOutlined';
+import ReportProblemIcon from '@mui/icons-material/WarningAmber';
+import InventoryIcon from '@mui/icons-material/AllInbox';
+import CategoryIcon from '@mui/icons-material/CategoryOutlined';
+import LogoutIcon from '@mui/icons-material/ExitToAppOutlined';
+
+import useAuth from '../hooks/useAuth';
+
+const SidebarMenu = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { logout } = useAuth();
   const [aberto, setAberto] = useState(false);
 
   const toggleMenu = () => {
     setAberto((prev) => !prev);
   };
+
+  const navegar = (rota) => {
+    navigate(rota);
+    setAberto(false);
+  };
+
+  const sair = () => {
+    logout();
+    setAberto(false);
+    navigate('/entrar');
+  };
+
+  const modulos = [
+    { text: 'Início', icon: <HomeIcon />, rota: '/inicio' },
+    { text: 'Usuário', icon: <PersonIcon />, rota: '/usuarios' },
+    { text: 'Vendas', icon: <AssessmentIcon />, rota: '/vendas' },
+    { text: 'Pdv Rápido', icon: <StorefrontIcon />, rota: '/pdv' },
+    { text: 'Contas', icon: <ReportProblemIcon />, rota: '/contas' },
+    { text: 'Estoque', icon: <InventoryIcon />, rota: '/estoque' },
+    { text: 'Produtos', icon: <CategoryIcon />, rota: '/produtos' },
+    { text: 'Sair', icon: <LogoutIcon />, action: sair },
+  ];
 
   return (
     <>
@@ -29,36 +66,38 @@ const SidebarMenu = ({ modulos = [] }) => {
             width: 280,
             bgcolor: '#128654',
             color: 'white',
-            pt: 2
-          }
+            pt: 2,
+          },
         }}
       >
-        <Typography
-          variant="h5"
-          sx={{ p: 3, fontWeight: 'bold', textAlign: 'center' }}
-        >
+        <Typography variant="h5" sx={{ p: 3, fontWeight: 'bold', textAlign: 'center' }}>
           NuPreço
         </Typography>
 
         <List>
-          {modulos.map((item) => (
-            <ListItemButton
-              key={item.text}
-              onClick={() => {
-                item.action?.();
-                toggleMenu();
-              }}
-              sx={{ py: 2 }}
-            >
-              <ListItemIcon sx={{ color: 'white', minWidth: 50 }}>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText
-                primary={item.text}
-                primaryTypographyProps={{ fontWeight: 'bold' }}
-              />
-            </ListItemButton>
-          ))}
+          {modulos.map((item) => {
+            const ativo = item.rota && location.pathname === item.rota;
+
+            return (
+              <ListItemButton
+                key={item.text}
+                onClick={() => (item.action ? item.action() : navegar(item.rota))}
+                sx={{
+                  py: 2,
+                  bgcolor: ativo ? 'rgba(255,255,255,0.16)' : 'transparent',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.14)' },
+                }}
+              >
+                <ListItemIcon sx={{ color: 'white', minWidth: 50 }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={item.text}
+                  primaryTypographyProps={{ fontWeight: 'bold' }}
+                />
+              </ListItemButton>
+            );
+          })}
         </List>
       </Drawer>
 
@@ -70,10 +109,11 @@ const SidebarMenu = ({ modulos = [] }) => {
           flexDirection: 'column',
           alignItems: 'center',
           py: 3,
-          height: '100vh',
+          minHeight: '100vh',
           zIndex: 1200,
           borderTopRightRadius: '15px',
-          borderBottomRightRadius: '15px'
+          borderBottomRightRadius: '15px',
+          flexShrink: 0,
         }}
       >
         <IconButton onClick={toggleMenu} sx={{ color: 'white' }}>

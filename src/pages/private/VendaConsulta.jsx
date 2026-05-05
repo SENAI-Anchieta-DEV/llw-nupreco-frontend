@@ -1,171 +1,204 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   Box,
-  Typography,
+  Button,
   Card,
+  Chip,
+  CircularProgress,
+  Collapse,
+  IconButton,
+  Paper,
   Stack,
-  CssBaseline,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Chip,
-  Pagination,
-  useTheme
+  Typography,
 } from '@mui/material';
-import HomeIcon from '@mui/icons-material/HomeOutlined';
-import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
-import AssessmentIcon from '@mui/icons-material/AssessmentOutlined';
-import StorefrontIcon from '@mui/icons-material/StorefrontOutlined';
-import ReportProblemIcon from '@mui/icons-material/WarningAmber';
-import InventoryIcon from '@mui/icons-material/AllInbox';
-import CategoryIcon from '@mui/icons-material/CategoryOutlined';
-import LogoutIcon from '@mui/icons-material/ExitToAppOutlined';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import DesktopWindowsIcon from '@mui/icons-material/DesktopWindowsOutlined';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
-import SidebarMenu from '../../components/SidebarMenu';
+import vendaService from '../../services/vendaService';
+import { getApiErrorMessage } from '../../services/apiResponse';
 
-const formatarMoeda = (valor) =>
-  Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const statusColors = {
+  FINALIZADA: { bg: '#E8F5E9', color: '#2E7D32' },
+  CANCELADA: { bg: '#FFEBEE', color: '#C62828' },
+};
 
-const VendaConsulta = ({ onBack, onLogout, historicoVendas = [], aoIrUsuarios, aoIrProdutos, aoIrPdv, aoIrContas, aoIrEstoque }) => {
-  const theme = useTheme();
-
-  const modulos = [
-    { text: 'Início', icon: <HomeIcon />, action: onBack },
-    { text: 'Usuário', icon: <PersonOutlineOutlinedIcon />, action: aoIrUsuarios },
-    { text: 'Vendas', icon: <AssessmentIcon /> },
-    { text: 'Pdv Rápido', icon: <StorefrontIcon />, action: aoIrPdv },
-    { text: 'Contas', icon: <ReportProblemIcon />, action: aoIrContas },
-    { text: 'Estoque', icon: <InventoryIcon />, action: aoIrEstoque },
-    { text: 'Produtos', icon: <CategoryIcon />, action: aoIrProdutos },
-    { text: 'Sair', icon: <LogoutIcon />, action: onLogout }
-  ];
-
-  const vendas = useMemo(() => {
-    return historicoVendas.map((venda, index) => ({
-      id: venda.id || `VENDA-${index + 1}`,
-      data: venda.data || '-',
-      vendedor: venda.vendedor || 'SISTEMA',
-      qtd: Array.isArray(venda.itens) ? venda.itens.reduce((acc, item) => acc + Number(item.qtd || 0), 0) : Number(venda.qtd || 0),
-      total: Number(venda.total || 0),
-      status: venda.status || 'CONCLUIDA'
-    }));
-  }, [historicoVendas]);
-
-  const totalVendido = vendas.filter((v) => v.status === 'CONCLUIDA').reduce((acc, v) => acc + Number(v.total || 0), 0);
-  const vendasConcluidas = vendas.filter((v) => v.status === 'CONCLUIDA').length;
-  const taxaConclusao = vendas.length > 0 ? Math.round((vendasConcluidas / vendas.length) * 100) : 0;
+const LinhaVenda = ({ venda, onCancelar }) => {
+  const [aberta, setAberta] = useState(false);
+  const statusColor = statusColors[venda.status] || statusColors.FINALIZADA;
 
   return (
-    <Box sx={{ display: 'flex', bgcolor: 'background.default', height: '100vh', width: '100vw', overflow: 'hidden' }}>
-      <CssBaseline />
-      <SidebarMenu modulos={modulos} />
-
-      <Box sx={{ flexGrow: 1, px: { xs: 3, lg: 6 }, py: { xs: 2, lg: 4 }, display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Box>
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
-              HISTÓRICO / VENDAS
-            </Typography>
-            <Typography variant="h4" sx={{ color: '#128654', fontWeight: 'bold' }}>
-              VENDAS
-            </Typography>
-          </Box>
-        </Stack>
-
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3 }}>
-          <Card sx={{ p: 3, borderRadius: '20px', border: `1px solid ${theme.palette.divider}`, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ width: 48, height: 48, borderRadius: '50%', bgcolor: '#E8F5E9', color: '#128654', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              <TrendingUpIcon />
-            </Box>
-            <Box>
-              <Typography variant="caption" color="text.secondary">VALOR TOTAL VENDIDO</Typography>
-              <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#128654' }}>
-                {formatarMoeda(totalVendido)}
+    <>
+      <TableRow hover>
+        <TableCell>
+          <IconButton size="small" onClick={() => setAberta((prev) => !prev)}>
+            {aberta ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+        </TableCell>
+        <TableCell>{venda.id}</TableCell>
+        <TableCell>{venda.data}</TableCell>
+        <TableCell>{venda.hora}</TableCell>
+        <TableCell>R$ {Number(venda.total).toFixed(2)}</TableCell>
+        <TableCell>R$ {Number(venda.valorRecebido).toFixed(2)}</TableCell>
+        <TableCell>R$ {Number(venda.troco).toFixed(2)}</TableCell>
+        <TableCell>
+          <Chip label={venda.status} size="small" sx={{ bgcolor: statusColor.bg, color: statusColor.color, fontWeight: 700 }} />
+        </TableCell>
+        <TableCell align="right">
+          {venda.status !== 'CANCELADA' && (
+            <Button
+              size="small"
+              color="error"
+              startIcon={<CancelOutlinedIcon />}
+              onClick={() => onCancelar(venda)}
+              sx={{ textTransform: 'none', fontWeight: 700 }}
+            >
+              Cancelar
+            </Button>
+          )}
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell colSpan={9} sx={{ py: 0 }}>
+          <Collapse in={aberta} timeout="auto" unmountOnExit>
+            <Box sx={{ p: 2, bgcolor: '#FAFAFA' }}>
+              <Typography sx={{ color: '#128654', fontWeight: 800, mb: 1 }}>
+                Itens Da Venda
               </Typography>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 800 }}>Produto</TableCell>
+                    <TableCell sx={{ fontWeight: 800 }}>Qtd.</TableCell>
+                    <TableCell sx={{ fontWeight: 800 }}>Preço Unitário</TableCell>
+                    <TableCell sx={{ fontWeight: 800 }}>Subtotal</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {venda.itens.map((item, index) => (
+                    <TableRow key={`${venda.id}-${item.produtoId}-${index}`}>
+                      <TableCell>{item.nomeProduto}</TableCell>
+                      <TableCell>{item.quantidade}</TableCell>
+                      <TableCell>R$ {Number(item.precoUnitario).toFixed(2)}</TableCell>
+                      <TableCell>R$ {Number(item.subtotal).toFixed(2)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </Box>
-          </Card>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </>
+  );
+};
 
-          <Card sx={{ p: 3, borderRadius: '20px', border: `1px solid ${theme.palette.divider}`, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ width: 48, height: 48, borderRadius: '50%', bgcolor: '#F1F8F5', color: '#128654', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              <AssessmentIcon />
-            </Box>
-            <Box>
-              <Typography variant="caption" color="text.secondary">TAXA DE CONCLUSÃO</Typography>
-              <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                {taxaConclusao}%
-              </Typography>
-            </Box>
-          </Card>
+const VendaConsulta = () => {
+  const [vendas, setVendas] = useState([]);
+  const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState('');
+  const [sucesso, setSucesso] = useState('');
 
-          <Card sx={{ p: 3, borderRadius: '20px', border: `1px solid ${theme.palette.divider}`, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ width: 48, height: 48, borderRadius: '50%', bgcolor: theme.palette.mode === 'dark' ? '#2A2A2A' : '#F5F5F5', color: 'text.secondary', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              <DesktopWindowsIcon />
-            </Box>
-            <Box>
-              <Typography variant="caption" color="text.secondary">REGISTROS EM TELA</Typography>
-              <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                {vendas.length}
-              </Typography>
-            </Box>
-          </Card>
+  const carregarVendas = async () => {
+    setCarregando(true);
+    setErro('');
+
+    try {
+      const data = await vendaService.listar();
+      setVendas(data);
+    } catch (error) {
+      setErro(getApiErrorMessage(error, 'Não foi possível carregar as vendas.'));
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+  useEffect(() => {
+    carregarVendas();
+  }, []);
+
+  const cancelarVenda = async (venda) => {
+    setErro('');
+    setSucesso('');
+
+    try {
+      await vendaService.cancelar(venda.id);
+      setSucesso('Venda cancelada com sucesso.');
+      await carregarVendas();
+    } catch (error) {
+      setErro(getApiErrorMessage(error, 'Não foi possível cancelar a venda.'));
+    }
+  };
+
+  return (
+    <Box sx={{ bgcolor: '#F9F9F9', minHeight: '100%', p: { xs: 3, lg: 4 } }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+        <Box>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
+            VENDAS / CONSULTA
+          </Typography>
+          <Typography variant="h4" sx={{ color: '#128654', fontWeight: 800 }}>
+            Vendas
+          </Typography>
         </Box>
 
-        <Card sx={{ flexGrow: 1, borderRadius: '25px', p: 2, boxShadow: 'none', border: `1px solid ${theme.palette.divider}`, display: 'flex', flexDirection: 'column' }}>
-          <TableContainer sx={{ maxHeight: '52vh' }}>
-            <Table stickyHeader>
+        <Button
+          variant="outlined"
+          startIcon={<RefreshIcon />}
+          onClick={carregarVendas}
+          sx={{ borderColor: '#128654', color: '#128654', textTransform: 'none', fontWeight: 700 }}
+        >
+          Atualizar
+        </Button>
+      </Stack>
+
+      {erro && <Alert severity="error" sx={{ mb: 2 }}>{erro}</Alert>}
+      {sucesso && <Alert severity="success" sx={{ mb: 2 }}>{sucesso}</Alert>}
+
+      <Card sx={{ p: 3, borderRadius: '25px', border: '1px solid #F0F0F0' }}>
+        {carregando ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+            <CircularProgress sx={{ color: '#128654' }} />
+          </Box>
+        ) : (
+          <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '15px', border: '1px solid #EEE' }}>
+            <Table>
               <TableHead>
-                <TableRow>
-                  {['ID', 'DATA', 'VENDEDOR', 'QUANTIDADE', 'VALOR TOTAL', 'STATUS'].map((head) => (
-                    <TableCell key={head} sx={{ color: 'text.secondary', fontWeight: 'bold', bgcolor: 'background.paper' }}>
-                      {head}
-                    </TableCell>
-                  ))}
+                <TableRow sx={{ bgcolor: '#F6FBF8' }}>
+                  <TableCell />
+                  <TableCell sx={{ fontWeight: 800 }}>ID</TableCell>
+                  <TableCell sx={{ fontWeight: 800 }}>Data</TableCell>
+                  <TableCell sx={{ fontWeight: 800 }}>Hora</TableCell>
+                  <TableCell sx={{ fontWeight: 800 }}>Total</TableCell>
+                  <TableCell sx={{ fontWeight: 800 }}>Recebido</TableCell>
+                  <TableCell sx={{ fontWeight: 800 }}>Troco</TableCell>
+                  <TableCell sx={{ fontWeight: 800 }}>Status</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 800 }}>Ações</TableCell>
                 </TableRow>
               </TableHead>
-
               <TableBody>
                 {vendas.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} align="center" sx={{ py: 8, color: 'text.secondary' }}>
-                      Nenhuma venda registrada até o momento.
-                    </TableCell>
+                    <TableCell colSpan={9} align="center">Nenhuma venda encontrada.</TableCell>
                   </TableRow>
                 ) : (
-                  vendas.map((row) => (
-                    <TableRow key={row.id} hover>
-                      <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>{row.id}</TableCell>
-                      <TableCell>{row.data}</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>{row.vendedor}</TableCell>
-                      <TableCell sx={{ textAlign: 'center' }}>{row.qtd}</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>{formatarMoeda(row.total)}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={row.status}
-                          sx={{
-                            bgcolor: row.status === 'CONCLUIDA' ? '#C8E6C9' : '#FFCDD2',
-                            color: row.status === 'CONCLUIDA' ? '#2E7D32' : '#C62828',
-                            fontWeight: 'bold',
-                            borderRadius: '8px'
-                          }}
-                        />
-                      </TableCell>
-                    </TableRow>
+                  vendas.map((venda) => (
+                    <LinhaVenda key={venda.id} venda={venda} onCancelar={cancelarVenda} />
                   ))
                 )}
               </TableBody>
             </Table>
           </TableContainer>
-
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-            <Pagination count={1} shape="rounded" color="primary" size="small" />
-          </Box>
-        </Card>
-      </Box>
+        )}
+      </Card>
     </Box>
   );
 };

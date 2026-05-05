@@ -1,262 +1,216 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   Box,
-  Typography,
-  Card,
-  TextField,
   Button,
-  IconButton,
+  Card,
+  Chip,
+  CircularProgress,
+  Grid,
+  Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  Stack,
-  Chip,
-  useTheme
+  TextField,
+  Typography,
 } from '@mui/material';
-import HomeIcon from '@mui/icons-material/HomeOutlined';
-import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
-import AssessmentIcon from '@mui/icons-material/AssessmentOutlined';
-import StorefrontIcon from '@mui/icons-material/StorefrontOutlined';
-import ReportProblemIcon from '@mui/icons-material/WarningAmber';
-import InventoryIcon from '@mui/icons-material/AllInbox';
-import CategoryIcon from '@mui/icons-material/CategoryOutlined';
-import LogoutIcon from '@mui/icons-material/ExitToAppOutlined';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import DeleteIcon from '@mui/icons-material/DeleteOutline';
-import EditIcon from '@mui/icons-material/EditOutlined';
-import SaveIcon from '@mui/icons-material/SaveOutlined';
-import AddIcon from '@mui/icons-material/Add';
-import ShieldIcon from '@mui/icons-material/ShieldOutlined';
-import SearchIcon from '@mui/icons-material/Search';
+import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
-import SidebarMenu from '../../components/SidebarMenu';
+import usuarioService from '../../services/usuarioService';
+import { getApiErrorMessage } from '../../services/apiResponse';
 
-const Usuarios = ({
-  onBack,
-  usuariosCadastrados = [],
-  aoSalvarUsuario,
-  aoExcluirUsuario,
-  usuarioLogado,
-  aoNotificar,
-  onLogout,
-  aoIrVendas,
-  aoIrProdutos,
-  aoIrPdv,
-  aoIrContas,
-  aoIrEstoque
-}) => {
-  const theme = useTheme();
-  const [modo, setModo] = useState('LISTA');
-  const [usuarioSelecionado, setUsuarioSelecionado] = useState(null);
-  const [form, setForm] = useState({ id: '', nome: '', email: '', senha: '' });
+const Usuarios = () => {
+  const [usuarios, setUsuarios] = useState([]);
+  const [carregando, setCarregando] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState('');
+  const [sucesso, setSucesso] = useState('');
+  const [form, setForm] = useState({ nome: '', email: '', senha: '' });
 
-  const modulos = [
-    { text: 'Início', icon: <HomeIcon />, action: onBack },
-    { text: 'Usuário', icon: <PersonOutlineOutlinedIcon /> },
-    { text: 'Vendas', icon: <AssessmentIcon />, action: aoIrVendas },
-    { text: 'Pdv Rápido', icon: <StorefrontIcon />, action: aoIrPdv },
-    { text: 'Contas', icon: <ReportProblemIcon />, action: aoIrContas },
-    { text: 'Estoque', icon: <InventoryIcon />, action: aoIrEstoque },
-    { text: 'Produtos', icon: <CategoryIcon />, action: aoIrProdutos },
-    { text: 'Sair', icon: <LogoutIcon />, action: onLogout }
-  ];
+  const carregarUsuarios = async () => {
+    setCarregando(true);
+    setErro('');
 
-  const ehAdminPrincipal = (id) => id === "ADMIN_ROOT" || id === usuariosCadastrados[0]?.id;
-
-  const abrirCadastro = (user = null) => {
-    if (user) {
-      setForm({ ...user, senha: '' });
-      setModo('FORMULARIO');
-    } else {
-      setForm({
-        id: `FUNC-${Math.floor(Date.now() / 1000)}`,
-        nome: '',
-        email: '',
-        senha: ''
-      });
-      setModo('FORMULARIO');
+    try {
+      const data = await usuarioService.listar();
+      setUsuarios(data);
+    } catch (error) {
+      setErro(getApiErrorMessage(error, 'Não foi possível carregar os usuários.'));
+    } finally {
+      setCarregando(false);
     }
   };
 
-  const salvar = () => {
-    if (!form.nome.trim() || !form.email.trim()) {
-      aoNotificar("Nome e E-mail são obrigatórios!", "warning");
-      return;
-    }
+  useEffect(() => {
+    carregarUsuarios();
+  }, []);
 
-    const ehNovo = !usuariosCadastrados.find((u) => u.id === form.id);
-    if (ehNovo && (!form.senha || form.senha.length < 6)) {
-      aoNotificar("Defina uma senha de no mínimo 6 caracteres para o novo funcionário!", "warning");
-      return;
-    }
-
-    aoSalvarUsuario(form);
-    setModo('LISTA');
+  const alterarCampo = (event) => {
+    const { name, value } = event.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const tentarExcluir = (u) => {
-    if (ehAdminPrincipal(u.id)) {
-      aoNotificar("O perfil de Gestor (ADMIN) é vitalício e não pode ser removido.", "error");
+  const cadastrarFuncionario = async () => {
+    setErro('');
+    setSucesso('');
+
+    if (!form.nome || !form.email || !form.senha) {
+      setErro('Preencha nome, e-mail e senha.');
       return;
     }
-    aoExcluirUsuario(u.id);
+
+    setSalvando(true);
+
+    try {
+      await usuarioService.cadastrarFuncionario(form);
+      setForm({ nome: '', email: '', senha: '' });
+      setSucesso('Funcionário cadastrado com sucesso.');
+      await carregarUsuarios();
+    } catch (error) {
+      setErro(getApiErrorMessage(error, 'Não foi possível cadastrar o funcionário.'));
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  const excluirUsuario = async (usuario) => {
+    setErro('');
+    setSucesso('');
+
+    if (usuario.role === 'GESTOR') {
+      setErro('O Gestor não pode ser excluído pelo sistema.');
+      return;
+    }
+
+    try {
+      await usuarioService.excluir(usuario.id);
+      setSucesso('Usuário excluído com sucesso.');
+      await carregarUsuarios();
+    } catch (error) {
+      setErro(getApiErrorMessage(error, 'Não foi possível excluir o usuário.'));
+    }
   };
 
   return (
-    <Box sx={{ display: 'flex', bgcolor: 'background.default', height: '100vh', width: '100vw', overflow: 'hidden' }}>
-      <SidebarMenu modulos={modulos} />
-
-      <Box sx={{ flexGrow: 1, p: 4, overflow: 'auto' }}>
-        <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>
-          <IconButton onClick={modo === 'LISTA' ? onBack : () => setModo('LISTA')} sx={{ color: '#128654' }}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h5" sx={{ color: '#128654', fontWeight: 'bold' }}>
-            {modo === 'CONSULTA' ? `RESUMO: ${usuarioSelecionado?.nome}` : 'GERENCIAR EQUIPE'}
+    <Box sx={{ bgcolor: '#F9F9F9', minHeight: '100%', p: { xs: 3, lg: 4 } }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+        <Box>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
+            CADASTRO / USUÁRIOS
           </Typography>
-        </Stack>
+          <Typography variant="h4" sx={{ color: '#128654', fontWeight: 800 }}>
+            Usuários
+          </Typography>
+        </Box>
 
-        {modo === 'LISTA' && (
-          <>
-            <Card
-              onClick={() => abrirCadastro()}
-              sx={{
-                p: 3,
-                mb: 4,
-                borderRadius: '20px',
-                textAlign: 'center',
-                cursor: 'pointer',
-                border: '1px dashed #128654',
-                bgcolor: theme.palette.mode === 'dark' ? '#163528' : '#F0F7F4'
-              }}
-            >
-              <AddIcon sx={{ color: '#128654', fontSize: '2rem' }} />
-              <Typography sx={{ color: '#128654', fontWeight: 'bold' }}>
-                CADASTRAR NOVO FUNCIONÁRIO
+        <Button
+          variant="outlined"
+          startIcon={<RefreshIcon />}
+          onClick={carregarUsuarios}
+          sx={{ borderColor: '#128654', color: '#128654', textTransform: 'none', fontWeight: 700 }}
+        >
+          Atualizar
+        </Button>
+      </Stack>
+
+      {erro && <Alert severity="error" sx={{ mb: 2 }}>{erro}</Alert>}
+      {sucesso && <Alert severity="success" sx={{ mb: 2 }}>{sucesso}</Alert>}
+
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={4}>
+          <Card sx={{ p: 3, borderRadius: '25px', border: '1px solid #F0F0F0' }}>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+              <PersonAddAltIcon sx={{ color: '#128654' }} />
+              <Typography sx={{ color: '#128654', fontWeight: 800 }}>
+                Cadastrar Funcionário
               </Typography>
-            </Card>
+            </Stack>
 
-            <TableContainer component={Paper} sx={{ borderRadius: '20px', boxShadow: 'none', border: `1px solid ${theme.palette.divider}`, overflow: 'hidden' }}>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: '#128654' }}>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>ID</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Nome / Cargo</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>E-mail de Acesso</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }} align="center">Ações</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {usuariosCadastrados.map((u) => {
-                    const gestor = ehAdminPrincipal(u.id);
-                    return (
-                      <TableRow key={u.id} sx={{ '&:hover': { bgcolor: theme.palette.mode === 'dark' ? '#252525' : '#F5F5F5' } }}>
-                        <TableCell sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>{u.id}</TableCell>
-                        <TableCell>
-                          <Stack direction="row" alignItems="center" spacing={1}>
-                            <Typography sx={{ fontWeight: gestor ? 'bold' : 'normal', color: 'text.primary' }}>
-                              {u.nome}
-                            </Typography>
-                            {gestor && (
-                              <Chip
-                                icon={<ShieldIcon style={{ color: '#128654', fontSize: '1rem' }} />}
-                                label="GESTOR"
-                                size="small"
-                                sx={{ bgcolor: '#E8F5E9', color: '#128654', fontWeight: 'bold', fontSize: '0.7rem' }}
-                              />
-                            )}
-                          </Stack>
-                        </TableCell>
-                        <TableCell sx={{ color: 'text.primary' }}>{u.email}</TableCell>
-                        <TableCell align="center">
-                          <Stack direction="row" spacing={1} justifyContent="center">
-                            <Button
-                              size="small"
-                              startIcon={<SearchIcon />}
-                              onClick={() => {
-                                setUsuarioSelecionado(u);
-                                setModo('CONSULTA');
-                              }}
-                              sx={{ color: '#128654', fontWeight: 'bold' }}
-                            >
-                              Relatório
-                            </Button>
-                            <IconButton onClick={() => abrirCadastro(u)} sx={{ color: '#128654' }}>
-                              <EditIcon fontSize="small" />
-                            </IconButton>
-                            <IconButton onClick={() => tentarExcluir(u)} sx={{ color: gestor ? '#777' : '#C62828' }}>
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Stack>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </>
-        )}
+            <Stack spacing={2}>
+              <TextField label="Nome" name="nome" value={form.nome} onChange={alterarCampo} fullWidth />
+              <TextField label="E-mail" name="email" value={form.email} onChange={alterarCampo} fullWidth />
+              <TextField label="Senha" name="senha" type="password" value={form.senha} onChange={alterarCampo} fullWidth />
 
-        {modo === 'FORMULARIO' && (
-          <Card sx={{ p: 4, borderRadius: '25px', maxWidth: 500, mx: 'auto', border: `1px solid ${theme.palette.divider}`, boxShadow: 'none', bgcolor: 'background.paper' }}>
-            <Typography variant="h6" sx={{ mb: 3, color: '#128654', fontWeight: 'bold' }}>
-              {usuariosCadastrados.find((u) => u.id === form.id) ? "Editar Perfil" : "Novo Integrante"}
-            </Typography>
-
-            <Stack spacing={3}>
-              <TextField label="ID DO SISTEMA" value={form.id} disabled fullWidth variant="filled" />
-              <TextField label="Nome Completo" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} fullWidth />
-              <TextField label="E-mail de Acesso" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} fullWidth disabled={ehAdminPrincipal(form.id)} />
-              <TextField label="Senha de Acesso" type="password" value={form.senha} placeholder={usuariosCadastrados.find((u) => u.id === form.id) ? "Deixe vazio para não alterar" : "Mínimo 6 caracteres"} onChange={(e) => setForm({ ...form, senha: e.target.value })} fullWidth />
-
-              <Button variant="contained" onClick={salvar} startIcon={<SaveIcon />} sx={{ bgcolor: '#128654', borderRadius: '15px', py: 1.5, fontWeight: 'bold', '&:hover': { bgcolor: '#0e6b43' } }}>
-                SALVAR ALTERAÇÕES
-              </Button>
-
-              <Button onClick={() => setModo('LISTA')} sx={{ color: 'text.secondary' }}>
-                Cancelar e Voltar
+              <Button
+                variant="contained"
+                disabled={salvando}
+                onClick={cadastrarFuncionario}
+                sx={{ bgcolor: '#128654', py: 1.4, fontWeight: 700, textTransform: 'none', borderRadius: '10px' }}
+              >
+                {salvando ? 'Salvando...' : 'Cadastrar Funcionário'}
               </Button>
             </Stack>
           </Card>
-        )}
+        </Grid>
 
-        {modo === 'CONSULTA' && (
-          <Box sx={{ maxWidth: 800, mx: 'auto' }}>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-              <Card sx={{ p: 3, borderRadius: '20px', border: `1px solid ${theme.palette.divider}`, textAlign: 'center', bgcolor: 'background.paper' }}>
-                <Typography variant="overline" color="text.secondary">TOTAL DE VENDAS (MÊS)</Typography>
-                <Typography variant="h4" sx={{ color: '#128654', fontWeight: 'bold' }}>R$ 0,00</Typography>
-              </Card>
+        <Grid item xs={12} md={8}>
+          <Card sx={{ p: 3, borderRadius: '25px', border: '1px solid #F0F0F0' }}>
+            <Typography sx={{ color: '#128654', fontWeight: 800, mb: 2 }}>
+              Usuários Cadastrados
+            </Typography>
 
-              <Card sx={{ p: 3, borderRadius: '20px', border: `1px solid ${theme.palette.divider}`, textAlign: 'center', bgcolor: 'background.paper' }}>
-                <Typography variant="overline" color="text.secondary">STATUS DE ACESSO</Typography>
-                <Typography variant="h4" sx={{ color: '#128654', fontWeight: 'bold' }}>
-                  {usuarioSelecionado?.nome === usuarioLogado ? 'EM USO' : 'ATIVO'}
-                </Typography>
-              </Card>
-
-              <Card sx={{ p: 3, borderRadius: '20px', border: `1px solid ${theme.palette.divider}`, gridColumn: { md: 'span 2' }, bgcolor: 'background.paper' }}>
-                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.primary' }}>
-                  REGISTRO DE ATIVIDADE
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  O usuário <strong>{usuarioSelecionado?.nome}</strong> está habilitado para operar o PDV.
-                  Nenhuma venda registrada até o momento.
-                </Typography>
-              </Card>
-            </Box>
-
-            <Button variant="outlined" onClick={() => setModo('LISTA')} sx={{ mt: 4, color: '#128654', borderColor: '#128654', borderRadius: '12px', px: 4 }}>
-              VOLTAR PARA LISTA
-            </Button>
-          </Box>
-        )}
-      </Box>
+            {carregando ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+                <CircularProgress sx={{ color: '#128654' }} />
+              </Box>
+            ) : (
+              <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '15px', border: '1px solid #EEE' }}>
+                <Table>
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: '#F6FBF8' }}>
+                      <TableCell sx={{ fontWeight: 800 }}>Nome</TableCell>
+                      <TableCell sx={{ fontWeight: 800 }}>E-mail</TableCell>
+                      <TableCell sx={{ fontWeight: 800 }}>Perfil</TableCell>
+                      <TableCell sx={{ fontWeight: 800 }}>Status</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 800 }}>Ações</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {usuarios.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} align="center">Nenhum usuário encontrado.</TableCell>
+                      </TableRow>
+                    ) : (
+                      usuarios.map((usuario) => (
+                        <TableRow key={usuario.id} hover>
+                          <TableCell>{usuario.nome}</TableCell>
+                          <TableCell>{usuario.email}</TableCell>
+                          <TableCell>
+                            <Chip
+                              label={usuario.role}
+                              size="small"
+                              sx={{ bgcolor: usuario.role === 'GESTOR' ? '#E8F5E9' : '#E3F2FD', fontWeight: 700 }}
+                            />
+                          </TableCell>
+                          <TableCell>{usuario.ativo ? 'Ativo' : 'Inativo'}</TableCell>
+                          <TableCell align="right">
+                            <Button
+                              size="small"
+                              color="error"
+                              startIcon={<DeleteOutlineIcon />}
+                              disabled={usuario.role === 'GESTOR'}
+                              onClick={() => excluirUsuario(usuario)}
+                              sx={{ textTransform: 'none', fontWeight: 700 }}
+                            >
+                              Excluir
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </Card>
+        </Grid>
+      </Grid>
     </Box>
   );
 };

@@ -1,343 +1,297 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   Box,
-  Typography,
-  Card,
-  Grid,
-  TextField,
   Button,
+  Card,
+  Chip,
+  CircularProgress,
+  Grid,
+  MenuItem,
   Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Chip,
-  useTheme
+  TextField,
+  Typography,
 } from '@mui/material';
-
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditIcon from '@mui/icons-material/EditOutlined';
-import ListAltIcon from '@mui/icons-material/ListAltOutlined';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import SaveIcon from '@mui/icons-material/Save';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
-const Contas = ({
-  aoSalvarConta,
-  aoExcluirConta,
-  contasCadastradas = [],
-  aoNotificar
-}) => {
-  const theme = useTheme();
+import contaService from '../../services/contaService';
+import { getApiErrorMessage } from '../../services/apiResponse';
 
-  const [modoLista, setModoLista] = useState(false);
-  const [acaoLista, setAcaoLista] = useState('');
+const initialForm = {
+  id: null,
+  nome: '',
+  descricao: '',
+  valor: '',
+  dataVencimento: '',
+};
 
-  const [idInterno, setIdInterno] = useState(null);
-  const [fornecedor, setFornecedor] = useState('');
-  const [dataVencimento, setDataVencimento] = useState('');
-  const [valor, setValor] = useState('');
+const statusColors = {
+  PENDENTE: { bg: '#FFF8E1', color: '#F57F17' },
+  PAGA: { bg: '#E8F5E9', color: '#2E7D32' },
+  VENCIDA: { bg: '#FFEBEE', color: '#C62828' },
+};
 
-  const calcularStatus = (boleto) => {
-    if (boleto.paga) return { label: 'PAGA', color: 'success' };
+const Contas = () => {
+  const [contas, setContas] = useState([]);
+  const [form, setForm] = useState(initialForm);
+  const [filtroStatus, setFiltroStatus] = useState('TODAS');
+  const [carregando, setCarregando] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState('');
+  const [sucesso, setSucesso] = useState('');
 
-    const hoje = new Date().toISOString().split('T')[0];
+  const contasFiltradas = useMemo(() => {
+    if (filtroStatus === 'TODAS') return contas;
+    return contas.filter((conta) => conta.status === filtroStatus);
+  }, [contas, filtroStatus]);
 
-    if (boleto.dataVencimento < hoje) {
-      return { label: 'ATRASADA', color: 'error' };
+  const carregarContas = async () => {
+    setCarregando(true);
+    setErro('');
+
+    try {
+      const data = await contaService.listar();
+      setContas(data);
+    } catch (error) {
+      setErro(getApiErrorMessage(error, 'Não foi possível carregar as contas.'));
+    } finally {
+      setCarregando(false);
     }
-
-    return { label: 'PENDENTE', color: 'warning' };
   };
 
-  const darBaixa = (boleto) => {
-    const atualizado = { ...boleto, paga: !boleto.paga };
-    aoSalvarConta?.(atualizado);
-    aoNotificar?.(
-      atualizado.paga ? 'Baixa efetuada com sucesso!' : 'Pagamento estornado.',
-      'info'
-    );
-  };
+  useEffect(() => {
+    carregarContas();
+  }, []);
 
-  const prepararLista = (acao) => {
-    setAcaoLista(acao);
-    setModoLista(true);
-  };
-
-  const salvarOuRessalvar = () => {
-    if (!fornecedor || !dataVencimento || !valor) {
-      aoNotificar?.('Preencha fornecedor, vencimento e valor!', 'warning');
-      return;
-    }
-
-    const payload = {
-      id: idInterno || Date.now().toString(),
-      fornecedor: fornecedor.toUpperCase(),
-      dataVencimento,
-      valor: parseFloat(valor).toFixed(2),
-      paga: idInterno
-        ? contasCadastradas.find((c) => c.id === idInterno)?.paga ?? false
-        : false
-    };
-
-    aoSalvarConta?.(payload);
-    limparCampos();
+  const alterarCampo = (event) => {
+    const { name, value } = event.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const limparCampos = () => {
-    setIdInterno(null);
-    setFornecedor('');
-    setValor('');
-    setDataVencimento('');
-    setModoLista(false);
-    setAcaoLista('');
+    setForm(initialForm);
   };
 
-  const ActionCard = ({ label, icon }) => (
-    <Card
-      sx={{
-        p: 2,
-        borderRadius: '25px',
-        textAlign: 'center',
-        cursor: 'pointer',
-        transition: '0.3s',
-        '&:hover': {
-          transform: 'translateY(-5px)',
-          boxShadow:
-            theme.palette.mode === 'dark'
-              ? '0px 10px 20px rgba(0,0,0,0.35)'
-              : '0px 10px 20px rgba(0,0,0,0.1)'
-        }
-      }}
-    >
-      <Typography
-        variant="body2"
-        sx={{ color: '#128654', fontWeight: 'bold', mb: 1 }}
-      >
-        {label}
-      </Typography>
-      {icon}
-    </Card>
-  );
+  const editarConta = (conta) => {
+    setForm({
+      id: conta.id,
+      nome: conta.nome,
+      descricao: conta.descricao,
+      valor: conta.valor,
+      dataVencimento: conta.dataVencimento,
+    });
+  };
+
+  const salvarConta = async () => {
+    setErro('');
+    setSucesso('');
+
+    if (!form.nome || !form.descricao || !form.valor || !form.dataVencimento) {
+      setErro('Preencha nome, descrição, valor e data de vencimento.');
+      return;
+    }
+
+    if (Number(form.valor) <= 0) {
+      setErro('O valor da conta deve ser maior que zero.');
+      return;
+    }
+
+    setSalvando(true);
+
+    try {
+      await contaService.salvar(form);
+      setSucesso(form.id ? 'Conta atualizada com sucesso.' : 'Conta cadastrada com sucesso.');
+      limparCampos();
+      await carregarContas();
+    } catch (error) {
+      setErro(getApiErrorMessage(error, 'Não foi possível salvar a conta.'));
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  const alterarStatus = async (conta, status) => {
+    setErro('');
+    setSucesso('');
+
+    try {
+      await contaService.atualizarStatus(conta.id, status);
+      setSucesso('Status da conta atualizado com sucesso.');
+      await carregarContas();
+    } catch (error) {
+      setErro(getApiErrorMessage(error, 'Não foi possível alterar o status da conta.'));
+    }
+  };
+
+  const excluirConta = async (conta) => {
+    setErro('');
+    setSucesso('');
+
+    try {
+      await contaService.excluir(conta.id);
+      setSucesso('Conta excluída com sucesso.');
+      await carregarContas();
+    } catch (error) {
+      setErro(getApiErrorMessage(error, 'Não foi possível excluir a conta.'));
+    }
+  };
 
   return (
-    <Box
-      sx={{
-        bgcolor: 'background.default',
-        minHeight: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 3
-      }}
-    >
-      <Typography
-        variant="caption"
-        sx={{ color: 'text.secondary', fontWeight: 'bold' }}
-      >
-        GESTÃO FINANCEIRA / CONTAS
-      </Typography>
-
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={3} onClick={limparCampos}>
-          <ActionCard
-            label="NOVA CONTA"
-            icon={<AddCircleOutlineIcon sx={{ color: '#128654', fontSize: '3rem' }} />}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={3} onClick={() => prepararLista('EXCLUIR')}>
-          <ActionCard
-            label="EXCLUIR CONTA"
-            icon={<HighlightOffIcon sx={{ color: '#C62828', fontSize: '3rem' }} />}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={3} onClick={() => prepararLista('EDITAR')}>
-          <ActionCard
-            label="ALTERAR DADOS"
-            icon={<EditIcon sx={{ color: '#FBC02D', fontSize: '3rem' }} />}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={3} onClick={() => prepararLista('CONSULTAR')}>
-          <ActionCard
-            label="CONSULTAR / BAIXA"
-            icon={<ListAltIcon sx={{ color: '#1976D2', fontSize: '3rem' }} />}
-          />
-        </Grid>
-      </Grid>
-
-      {modoLista ? (
-        <TableContainer
-          component={Paper}
-          sx={{
-            borderRadius: '25px',
-            maxHeight: '60vh',
-            border: `1px solid ${theme.palette.divider}`
-          }}
-        >
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ bgcolor: 'background.paper' }}>
-                  <strong>Fornecedor</strong>
-                </TableCell>
-                <TableCell sx={{ bgcolor: 'background.paper' }}>
-                  <strong>Vencimento</strong>
-                </TableCell>
-                <TableCell sx={{ bgcolor: 'background.paper' }}>
-                  <strong>Valor</strong>
-                </TableCell>
-                <TableCell sx={{ bgcolor: 'background.paper' }}>
-                  <strong>Status</strong>
-                </TableCell>
-                <TableCell sx={{ bgcolor: 'background.paper' }} align="center">
-                  <strong>Ação</strong>
-                </TableCell>
-              </TableRow>
-            </TableHead>
-
-            <TableBody>
-              {contasCadastradas.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} align="center">
-                    Nenhuma conta cadastrada.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                contasCadastradas.map((b) => {
-                  const status = calcularStatus(b);
-
-                  return (
-                    <TableRow key={b.id}>
-                      <TableCell>{b.fornecedor}</TableCell>
-                      <TableCell>{b.dataVencimento}</TableCell>
-                      <TableCell>R$ {b.valor}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={status.label}
-                          color={status.color}
-                          size="small"
-                          sx={{ fontWeight: 'bold' }}
-                        />
-                      </TableCell>
-
-                      <TableCell align="center">
-                        {acaoLista === 'CONSULTAR' ? (
-                          <Button
-                            startIcon={<CheckCircleIcon />}
-                            onClick={() => darBaixa(b)}
-                            color={b.paga ? 'inherit' : 'success'}
-                            sx={{ textTransform: 'none' }}
-                          >
-                            {b.paga ? 'Estornar' : 'Baixar'}
-                          </Button>
-                        ) : (
-                          <Button
-                            onClick={() => {
-                              if (acaoLista === 'EXCLUIR') {
-                                aoExcluirConta?.(b.id);
-                              } else {
-                                setIdInterno(b.id);
-                                setFornecedor(b.fornecedor);
-                                setValor(b.valor);
-                                setDataVencimento(b.dataVencimento);
-                                setModoLista(false);
-                              }
-                            }}
-                            sx={{
-                              color: acaoLista === 'EXCLUIR' ? '#D32F2F' : '#ED6C02',
-                              fontWeight: 'bold'
-                            }}
-                          >
-                            {acaoLista === 'EXCLUIR' ? 'REMOVER' : 'EDITAR'}
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      ) : (
-        <Box
-          sx={{
-            bgcolor: 'background.paper',
-            p: 4,
-            borderRadius: '25px',
-            boxShadow:
-              theme.palette.mode === 'dark'
-                ? '0px 4px 20px rgba(0,0,0,0.35)'
-                : '0px 4px 20px rgba(0,0,0,0.05)',
-            border: `1px solid ${theme.palette.divider}`
-          }}
-        >
-          <Typography
-            variant="h6"
-            sx={{ mb: 3, color: '#128654', fontWeight: 'bold' }}
-          >
-            {idInterno ? `Editando Conta: ${idInterno}` : 'Cadastrar Novo Boleto/Conta'}
+    <Box sx={{ bgcolor: '#F9F9F9', minHeight: '100%', p: { xs: 3, lg: 4 } }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+        <Box>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
+            FINANCEIRO / CONTAS
           </Typography>
+          <Typography variant="h4" sx={{ color: '#128654', fontWeight: 800 }}>
+            Contas
+          </Typography>
+        </Box>
 
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="FORNECEDOR"
-                value={fornecedor}
-                onChange={(e) => setFornecedor(e.target.value.toUpperCase())}
-                fullWidth
-              />
-            </Grid>
+        <Button
+          variant="outlined"
+          startIcon={<RefreshIcon />}
+          onClick={carregarContas}
+          sx={{ borderColor: '#128654', color: '#128654', textTransform: 'none', fontWeight: 700 }}
+        >
+          Atualizar
+        </Button>
+      </Stack>
 
-            <Grid item xs={12} md={3}>
-              <TextField
-                label="VALOR (R$)"
-                value={valor}
-                type="number"
-                onChange={(e) => setValor(e.target.value)}
-                fullWidth
-              />
-            </Grid>
+      {erro && <Alert severity="error" sx={{ mb: 2 }}>{erro}</Alert>}
+      {sucesso && <Alert severity="success" sx={{ mb: 2 }}>{sucesso}</Alert>}
 
-            <Grid item xs={12} md={3}>
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={4}>
+          <Card sx={{ p: 3, borderRadius: '25px', border: '1px solid #F0F0F0' }}>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+              <AddCircleOutlineIcon sx={{ color: '#128654' }} />
+              <Typography sx={{ color: '#128654', fontWeight: 800 }}>
+                {form.id ? 'Editar Conta' : 'Nova Conta'}
+              </Typography>
+            </Stack>
+
+            <Stack spacing={2}>
+              <TextField label="Nome" name="nome" value={form.nome} onChange={alterarCampo} fullWidth />
+              <TextField label="Descrição" name="descricao" value={form.descricao} onChange={alterarCampo} fullWidth />
+              <TextField label="Valor" name="valor" type="number" value={form.valor} onChange={alterarCampo} fullWidth />
               <TextField
-                label="VENCIMENTO"
+                label="Data De Vencimento"
+                name="dataVencimento"
                 type="date"
-                value={dataVencimento}
-                onChange={(e) => setDataVencimento(e.target.value)}
+                value={form.dataVencimento}
+                onChange={alterarCampo}
                 fullWidth
                 InputLabelProps={{ shrink: true }}
               />
-            </Grid>
-          </Grid>
 
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4, gap: 2 }}>
-            {idInterno && (
-              <Button onClick={limparCampos} sx={{ color: 'text.secondary' }}>
-                Cancelar
+              <Button
+                variant="contained"
+                disabled={salvando}
+                startIcon={<SaveIcon />}
+                onClick={salvarConta}
+                sx={{ bgcolor: '#128654', py: 1.3, borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}
+              >
+                {salvando ? 'Salvando...' : 'Salvar Conta'}
               </Button>
-            )}
 
-            <Button
-              variant="contained"
-              onClick={salvarOuRessalvar}
-              startIcon={<SaveIcon />}
-              sx={{
-                bgcolor: '#128654',
-                borderRadius: '25px',
-                px: 6,
-                '&:hover': { bgcolor: '#0e6b43' }
-              }}
-            >
-              {idInterno ? 'RESSALVAR ALTERAÇÕES' : 'SALVAR CONTA'}
-            </Button>
-          </Box>
-        </Box>
-      )}
+              {form.id && (
+                <Button onClick={limparCampos} sx={{ color: '#128654', textTransform: 'none', fontWeight: 700 }}>
+                  Nova Conta
+                </Button>
+              )}
+            </Stack>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={8}>
+          <Card sx={{ p: 3, borderRadius: '25px', border: '1px solid #F0F0F0' }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} spacing={2} sx={{ mb: 2 }}>
+              <Typography sx={{ color: '#128654', fontWeight: 800 }}>
+                Contas Cadastradas
+              </Typography>
+
+              <TextField select size="small" label="Status" value={filtroStatus} onChange={(event) => setFiltroStatus(event.target.value)} sx={{ minWidth: 180 }}>
+                <MenuItem value="TODAS">Todas</MenuItem>
+                <MenuItem value="PENDENTE">Pendente</MenuItem>
+                <MenuItem value="PAGA">Paga</MenuItem>
+                <MenuItem value="VENCIDA">Vencida</MenuItem>
+              </TextField>
+            </Stack>
+
+            {carregando ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+                <CircularProgress sx={{ color: '#128654' }} />
+              </Box>
+            ) : (
+              <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '15px', border: '1px solid #EEE' }}>
+                <Table>
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: '#F6FBF8' }}>
+                      <TableCell sx={{ fontWeight: 800 }}>Nome</TableCell>
+                      <TableCell sx={{ fontWeight: 800 }}>Vencimento</TableCell>
+                      <TableCell sx={{ fontWeight: 800 }}>Valor</TableCell>
+                      <TableCell sx={{ fontWeight: 800 }}>Status</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 800 }}>Ações</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {contasFiltradas.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} align="center">Nenhuma conta encontrada.</TableCell>
+                      </TableRow>
+                    ) : (
+                      contasFiltradas.map((conta) => {
+                        const statusColor = statusColors[conta.status] || statusColors.PENDENTE;
+
+                        return (
+                          <TableRow key={conta.id} hover>
+                            <TableCell>{conta.nome}</TableCell>
+                            <TableCell>{conta.dataVencimento}</TableCell>
+                            <TableCell>R$ {Number(conta.valor).toFixed(2)}</TableCell>
+                            <TableCell>
+                              <Chip label={conta.status} size="small" sx={{ bgcolor: statusColor.bg, color: statusColor.color, fontWeight: 700 }} />
+                            </TableCell>
+                            <TableCell align="right">
+                              <Button size="small" startIcon={<EditIcon />} onClick={() => editarConta(conta)} sx={{ color: '#128654', textTransform: 'none', fontWeight: 700 }}>
+                                Editar
+                              </Button>
+                              {conta.status !== 'PAGA' && (
+                                <Button size="small" onClick={() => alterarStatus(conta, 'PAGA')} sx={{ color: '#128654', textTransform: 'none', fontWeight: 700 }}>
+                                  Pagar
+                                </Button>
+                              )}
+                              {conta.status === 'PAGA' && (
+                                <Button size="small" onClick={() => alterarStatus(conta, 'PENDENTE')} sx={{ color: '#F57F17', textTransform: 'none', fontWeight: 700 }}>
+                                  Reabrir
+                                </Button>
+                              )}
+                              <Button size="small" color="error" startIcon={<DeleteOutlineIcon />} onClick={() => excluirConta(conta)} sx={{ textTransform: 'none', fontWeight: 700 }}>
+                                Excluir
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </Card>
+        </Grid>
+      </Grid>
     </Box>
   );
 };
