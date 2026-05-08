@@ -6,6 +6,10 @@ import {
   Card,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Grid,
   Paper,
   Stack,
@@ -17,21 +21,36 @@ import {
   TableRow,
   TextField,
   Typography,
+  useTheme,
 } from '@mui/material';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import EditIcon from '@mui/icons-material/EditOutlined';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import SaveIcon from '@mui/icons-material/SaveOutlined';
 
 import usuarioService from '../../services/usuarioService';
 import { getApiErrorMessage } from '../../services/apiResponse';
 
+const initialForm = { nome: '', email: '', senha: '' };
+
+const formatarPerfil = (role) => {
+  if (role === 'GESTOR') return 'Administrador';
+  if (role === 'FUNCIONARIO') return 'Funcionário';
+  return role || 'Usuário';
+};
+
 const Usuarios = () => {
+  const theme = useTheme();
   const [usuarios, setUsuarios] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
-  const [form, setForm] = useState({ nome: '', email: '', senha: '' });
+  const [form, setForm] = useState(initialForm);
+  const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false);
+  const [usuarioEditando, setUsuarioEditando] = useState(null);
+  const [formEdicao, setFormEdicao] = useState(initialForm);
 
   const carregarUsuarios = async () => {
     setCarregando(true);
@@ -56,6 +75,11 @@ const Usuarios = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const alterarCampoEdicao = (event) => {
+    const { name, value } = event.target;
+    setFormEdicao((prev) => ({ ...prev, [name]: value }));
+  };
+
   const cadastrarFuncionario = async () => {
     setErro('');
     setSucesso('');
@@ -69,11 +93,52 @@ const Usuarios = () => {
 
     try {
       await usuarioService.cadastrarFuncionario(form);
-      setForm({ nome: '', email: '', senha: '' });
+      setForm(initialForm);
       setSucesso('Funcionário cadastrado com sucesso.');
       await carregarUsuarios();
     } catch (error) {
       setErro(getApiErrorMessage(error, 'Não foi possível cadastrar o funcionário.'));
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  const abrirEdicao = (usuario) => {
+    setUsuarioEditando(usuario);
+    setFormEdicao({
+      nome: usuario.nome || '',
+      email: usuario.email || '',
+      senha: '',
+    });
+    setModalEdicaoAberto(true);
+  };
+
+  const fecharEdicao = () => {
+    setModalEdicaoAberto(false);
+    setUsuarioEditando(null);
+    setFormEdicao(initialForm);
+  };
+
+  const salvarEdicao = async () => {
+    setErro('');
+    setSucesso('');
+
+    if (!usuarioEditando?.id) return;
+
+    if (!formEdicao.nome || !formEdicao.email || !formEdicao.senha) {
+      setErro('Para atualizar o usuário, preencha nome, e-mail e senha.');
+      return;
+    }
+
+    setSalvando(true);
+
+    try {
+      await usuarioService.atualizar(usuarioEditando.id, formEdicao);
+      fecharEdicao();
+      setSucesso('Usuário atualizado com sucesso.');
+      await carregarUsuarios();
+    } catch (error) {
+      setErro(getApiErrorMessage(error, 'Não foi possível atualizar o usuário.'));
     } finally {
       setSalvando(false);
     }
@@ -98,8 +163,8 @@ const Usuarios = () => {
   };
 
   return (
-    <Box sx={{ bgcolor: '#F9F9F9', minHeight: '100%', p: { xs: 3, lg: 4 } }}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100%', p: { xs: 2, sm: 3, lg: 4 }, overflowX: 'hidden' }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
         <Box>
           <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
             CADASTRO / USUÁRIOS
@@ -113,7 +178,7 @@ const Usuarios = () => {
           variant="outlined"
           startIcon={<RefreshIcon />}
           onClick={carregarUsuarios}
-          sx={{ borderColor: '#128654', color: '#128654', textTransform: 'none', fontWeight: 700 }}
+          sx={{ borderColor: '#128654', color: '#128654', textTransform: 'none', fontWeight: 700, alignSelf: { xs: 'flex-start', sm: 'center' } }}
         >
           Atualizar
         </Button>
@@ -124,7 +189,7 @@ const Usuarios = () => {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>
-          <Card sx={{ p: 3, borderRadius: '25px', border: '1px solid #F0F0F0' }}>
+          <Card sx={{ p: 3, borderRadius: '25px', border: `1px solid ${theme.palette.divider}` }}>
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
               <PersonAddAltIcon sx={{ color: '#128654' }} />
               <Typography sx={{ color: '#128654', fontWeight: 800 }}>
@@ -150,7 +215,7 @@ const Usuarios = () => {
         </Grid>
 
         <Grid item xs={12} md={8}>
-          <Card sx={{ p: 3, borderRadius: '25px', border: '1px solid #F0F0F0' }}>
+          <Card sx={{ p: { xs: 2, sm: 3 }, borderRadius: '25px', border: `1px solid ${theme.palette.divider}` }}>
             <Typography sx={{ color: '#128654', fontWeight: 800, mb: 2 }}>
               Usuários Cadastrados
             </Typography>
@@ -160,8 +225,8 @@ const Usuarios = () => {
                 <CircularProgress sx={{ color: '#128654' }} />
               </Box>
             ) : (
-              <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '15px', border: '1px solid #EEE' }}>
-                <Table>
+              <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '15px', border: '1px solid #EEE', overflowX: 'auto' }}>
+                <Table sx={{ minWidth: 720 }}>
                   <TableHead>
                     <TableRow sx={{ bgcolor: '#F6FBF8' }}>
                       <TableCell sx={{ fontWeight: 800 }}>Nome</TableCell>
@@ -179,27 +244,42 @@ const Usuarios = () => {
                     ) : (
                       usuarios.map((usuario) => (
                         <TableRow key={usuario.id} hover>
-                          <TableCell>{usuario.nome}</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>{usuario.nome}</TableCell>
                           <TableCell>{usuario.email}</TableCell>
                           <TableCell>
                             <Chip
-                              label={usuario.role}
+                              label={formatarPerfil(usuario.role)}
                               size="small"
-                              sx={{ bgcolor: usuario.role === 'GESTOR' ? '#E8F5E9' : '#E3F2FD', fontWeight: 700 }}
+                              sx={{ bgcolor: usuario.role === 'GESTOR' ? '#E8F5E9' : '#F6FBF8', color: '#128654', fontWeight: 700 }}
                             />
                           </TableCell>
-                          <TableCell>{usuario.ativo ? 'Ativo' : 'Inativo'}</TableCell>
+                          <TableCell>
+                            <Chip
+                              label={usuario.ativo ? 'Ativo' : 'Inativo'}
+                              size="small"
+                              sx={{ bgcolor: usuario.ativo ? '#E8F5E9' : '#FFEBEE', color: usuario.ativo ? '#2E7D32' : '#C62828', fontWeight: 700 }}
+                            />
+                          </TableCell>
                           <TableCell align="right">
                             <Button
                               size="small"
-                              color="error"
-                              startIcon={<DeleteOutlineIcon />}
-                              disabled={usuario.role === 'GESTOR'}
-                              onClick={() => excluirUsuario(usuario)}
-                              sx={{ textTransform: 'none', fontWeight: 700 }}
+                              startIcon={<EditIcon />}
+                              onClick={() => abrirEdicao(usuario)}
+                              sx={{ color: '#128654', textTransform: 'none', fontWeight: 700 }}
                             >
-                              Excluir
+                              Editar
                             </Button>
+                            {usuario.role !== 'GESTOR' && (
+                              <Button
+                                size="small"
+                                color="error"
+                                startIcon={<DeleteOutlineIcon />}
+                                onClick={() => excluirUsuario(usuario)}
+                                sx={{ textTransform: 'none', fontWeight: 700 }}
+                              >
+                                Excluir
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))
@@ -211,6 +291,33 @@ const Usuarios = () => {
           </Card>
         </Grid>
       </Grid>
+
+      <Dialog open={modalEdicaoAberto} onClose={fecharEdicao} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ color: '#128654', fontWeight: 800 }}>
+          Editar Usuário
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField label="Nome" name="nome" value={formEdicao.nome} onChange={alterarCampoEdicao} fullWidth />
+            <TextField label="E-mail" name="email" value={formEdicao.email} onChange={alterarCampoEdicao} fullWidth />
+            <TextField label="Senha" name="senha" type="password" value={formEdicao.senha} onChange={alterarCampoEdicao} fullWidth helperText="O backend exige senha no DTO de atualização." />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={fecharEdicao} sx={{ color: '#128654', textTransform: 'none', fontWeight: 700 }}>
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<SaveIcon />}
+            disabled={salvando}
+            onClick={salvarEdicao}
+            sx={{ bgcolor: '#128654', textTransform: 'none', fontWeight: 700 }}
+          >
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

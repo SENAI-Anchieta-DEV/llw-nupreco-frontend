@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Box,
@@ -26,6 +26,8 @@ import estoqueService from '../../services/estoqueService';
 import produtoService from '../../services/produtoService';
 import { getApiErrorMessage } from '../../services/apiResponse';
 
+const formatMoney = (value) => Number(value || 0).toFixed(2);
+
 const Estoque = () => {
   const [produtos, setProdutos] = useState([]);
   const [itens, setItens] = useState([]);
@@ -34,6 +36,26 @@ const Estoque = () => {
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
+
+  const itensComProduto = useMemo(() => {
+    return itens.map((item) => {
+      const produto = produtos.find((produtoItem) => produtoItem.id === item.produtoId);
+      const custoProduto = Number(produto?.custoProduto ?? 0);
+      const precoVenda = Number(produto?.precoVenda ?? 0);
+      const lucroUnitario = precoVenda - custoProduto;
+      const quantidade = Number(item.quantidade ?? 0);
+
+      return {
+        ...item,
+        nomeProduto: item.nomeProduto || produto?.nome || 'Produto',
+        custoProduto,
+        precoVenda,
+        lucroUnitario,
+        quantidade,
+        lucroTotalEstimado: lucroUnitario * quantidade,
+      };
+    });
+  }, [itens, produtos]);
 
   const carregarDados = async () => {
     setCarregando(true);
@@ -102,7 +124,7 @@ const Estoque = () => {
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
         <Box>
           <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
-            CONTROLE / ESTOQUE
+            ESTOQUE / MOVIMENTAÇÃO
           </Typography>
           <Typography variant="h4" sx={{ color: '#128654', fontWeight: 800 }}>
             Estoque
@@ -133,33 +155,36 @@ const Estoque = () => {
               <TextField select label="Produto" name="produtoId" value={form.produtoId} onChange={alterarCampo} fullWidth>
                 {produtos.map((produto) => (
                   <MenuItem key={produto.id} value={produto.id}>
-                    {produto.nome}
+                    {produto.nome} • R$ {formatMoney(produto.precoVenda)}
                   </MenuItem>
                 ))}
               </TextField>
 
               <TextField label="Quantidade" name="quantidade" type="number" value={form.quantidade} onChange={alterarCampo} fullWidth />
 
-              <Button
-                variant="contained"
-                disabled={salvando}
-                startIcon={<AddIcon />}
-                onClick={() => movimentarEstoque('ADICIONAR')}
-                sx={{ bgcolor: '#128654', py: 1.3, borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}
-              >
-                Adicionar
-              </Button>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  disabled={salvando}
+                  onClick={() => movimentarEstoque('ADICIONAR')}
+                  sx={{ bgcolor: '#128654', py: 1.3, borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}
+                >
+                  Adicionar
+                </Button>
 
-              <Button
-                variant="outlined"
-                disabled={salvando}
-                color="error"
-                startIcon={<RemoveIcon />}
-                onClick={() => movimentarEstoque('REMOVER')}
-                sx={{ py: 1.3, borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}
-              >
-                Remover
-              </Button>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  startIcon={<RemoveIcon />}
+                  disabled={salvando}
+                  onClick={() => movimentarEstoque('REMOVER')}
+                  sx={{ borderColor: '#C62828', color: '#C62828', py: 1.3, borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}
+                >
+                  Remover
+                </Button>
+              </Stack>
             </Stack>
           </Card>
         </Grid>
@@ -182,19 +207,27 @@ const Estoque = () => {
                       <TableCell sx={{ fontWeight: 800 }}>Código</TableCell>
                       <TableCell sx={{ fontWeight: 800 }}>Produto</TableCell>
                       <TableCell sx={{ fontWeight: 800 }}>Quantidade</TableCell>
+                      <TableCell sx={{ fontWeight: 800 }}>Custo Unitário</TableCell>
+                      <TableCell sx={{ fontWeight: 800 }}>Preço Venda</TableCell>
+                      <TableCell sx={{ fontWeight: 800 }}>Lucro Unitário</TableCell>
+                      <TableCell sx={{ fontWeight: 800 }}>Lucro Total Estimado</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {itens.length === 0 ? (
+                    {itensComProduto.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={3} align="center">Nenhum item encontrado no estoque.</TableCell>
+                        <TableCell colSpan={7} align="center">Nenhum item em estoque.</TableCell>
                       </TableRow>
                     ) : (
-                      itens.map((item) => (
+                      itensComProduto.map((item) => (
                         <TableRow key={item.produtoId} hover>
                           <TableCell>{item.produtoId}</TableCell>
                           <TableCell>{item.nomeProduto}</TableCell>
                           <TableCell>{item.quantidade}</TableCell>
+                          <TableCell>R$ {formatMoney(item.custoProduto)}</TableCell>
+                          <TableCell>R$ {formatMoney(item.precoVenda)}</TableCell>
+                          <TableCell>R$ {formatMoney(item.lucroUnitario)}</TableCell>
+                          <TableCell>R$ {formatMoney(item.lucroTotalEstimado)}</TableCell>
                         </TableRow>
                       ))
                     )}

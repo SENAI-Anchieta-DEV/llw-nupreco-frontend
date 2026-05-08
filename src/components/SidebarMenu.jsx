@@ -23,7 +23,7 @@ import LogoutIcon from '@mui/icons-material/ExitToAppOutlined';
 
 import useAuth from '../hooks/useAuth';
 
-const SidebarMenu = () => {
+const SidebarMenu = ({ modulos }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
@@ -34,7 +34,9 @@ const SidebarMenu = () => {
   };
 
   const navegar = (rota) => {
-    navigate(rota);
+    if (rota) {
+      navigate(rota);
+    }
     setAberto(false);
   };
 
@@ -44,7 +46,7 @@ const SidebarMenu = () => {
     navigate('/entrar');
   };
 
-  const modulos = [
+  const modulosPadrao = [
     { text: 'Início', icon: <HomeIcon />, rota: '/inicio' },
     { text: 'Usuário', icon: <PersonIcon />, rota: '/usuarios' },
     { text: 'Vendas', icon: <AssessmentIcon />, rota: '/vendas' },
@@ -54,6 +56,8 @@ const SidebarMenu = () => {
     { text: 'Produtos', icon: <CategoryIcon />, rota: '/produtos' },
     { text: 'Sair', icon: <LogoutIcon />, action: sair },
   ];
+
+  const itensMenu = Array.isArray(modulos) && modulos.length > 0 ? modulos : modulosPadrao;
 
   return (
     <>
@@ -70,18 +74,29 @@ const SidebarMenu = () => {
           },
         }}
       >
-        <Typography variant="h5" sx={{ p: 3, fontWeight: 'bold', textAlign: 'center' }}>
+        <Typography
+          variant="h5"
+          sx={{ p: 3, fontWeight: 'bold', textAlign: 'center' }}
+        >
           NuPreço
         </Typography>
 
         <List>
-          {modulos.map((item) => {
+          {itensMenu.map((item) => {
             const ativo = item.rota && location.pathname === item.rota;
 
             return (
               <ListItemButton
                 key={item.text}
-                onClick={() => (item.action ? item.action() : navegar(item.rota))}
+                onClick={() => {
+                  if (item.action) {
+                    item.action();
+                    setAberto(false);
+                    return;
+                  }
+
+                  navegar(item.rota);
+                }}
                 sx={{
                   py: 2,
                   bgcolor: ativo ? 'rgba(255,255,255,0.16)' : 'transparent',
@@ -110,6 +125,7 @@ const SidebarMenu = () => {
           alignItems: 'center',
           py: 3,
           minHeight: '100vh',
+          height: '100vh',
           zIndex: 1200,
           borderTopRightRadius: '15px',
           borderBottomRightRadius: '15px',

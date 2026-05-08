@@ -1,10 +1,11 @@
 import api from './api';
 import { unwrapApiData } from './apiResponse';
+import { normalizeContaComStatus } from '../utils/contasStatus';
 
 const normalizeConta = (conta) => {
   if (!conta) return null;
 
-  return {
+  const contaNormalizada = {
     ...conta,
     id: conta.id,
     fornecedor: conta.nome ?? conta.fornecedor ?? '',
@@ -15,6 +16,8 @@ const normalizeConta = (conta) => {
     status: conta.status ?? (conta.paga ? 'PAGA' : 'PENDENTE'),
     paga: conta.status === 'PAGA' || conta.paga === true,
   };
+
+  return normalizeContaComStatus(contaNormalizada);
 };
 
 const normalizeContas = (data) => {
@@ -68,6 +71,14 @@ const contaService = {
       params: { novoStatus: status },
     });
     return normalizeConta(unwrapApiData(response));
+  },
+
+  async marcarComoPaga(id) {
+    return this.atualizarStatus(id, 'PAGA');
+  },
+
+  async reabrirConta(id) {
+    return this.atualizarStatus(id, 'PENDENTE');
   },
 
   async excluir(id) {

@@ -37,7 +37,7 @@ const vendaService = {
   async vender(venda) {
     const response = await api.post('/vendas', {
       itens: venda.itens.map((item) => ({
-        produtoId: item.produtoId || item.id || item.cod,
+        produtoId: String(item.produtoId || item.id || item.cod || '').trim(),
         quantidade: Number(item.quantidade || item.qtd),
       })),
       valorRecebido: Number(venda.valorRecebido),

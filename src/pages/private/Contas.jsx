@@ -4,8 +4,10 @@ import {
   Box,
   Button,
   Card,
+  Checkbox,
   Chip,
   CircularProgress,
+  FormControlLabel,
   Grid,
   MenuItem,
   Paper,
@@ -27,6 +29,13 @@ import SaveIcon from '@mui/icons-material/Save';
 
 import contaService from '../../services/contaService';
 import { getApiErrorMessage } from '../../services/apiResponse';
+import {
+  formatarDataBr,
+  formatarMoeda,
+  getContasAPagar,
+  getTotalAPagar,
+  normalizeContaComStatus,
+} from '../../utils/contasStatus';
 
 const initialForm = {
   id: null,
@@ -37,9 +46,9 @@ const initialForm = {
 };
 
 const statusColors = {
-  PENDENTE: { bg: '#FFF8E1', color: '#F57F17' },
-  PAGA: { bg: '#E8F5E9', color: '#2E7D32' },
-  VENCIDA: { bg: '#FFEBEE', color: '#C62828' },
+  PENDENTE: { bg: '#FFF8E1', color: '#F57F17', label: 'Pendente' },
+  PAGA: { bg: '#E8F5E9', color: '#2E7D32', label: 'Paga' },
+  VENCIDA: { bg: '#FFEBEE', color: '#C62828', label: 'Vencida' },
 };
 
 const Contas = () => {
@@ -51,10 +60,17 @@ const Contas = () => {
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
 
+  const contasComStatus = useMemo(() => {
+    return contas.map((conta) => normalizeContaComStatus(conta)).filter(Boolean);
+  }, [contas]);
+
   const contasFiltradas = useMemo(() => {
-    if (filtroStatus === 'TODAS') return contas;
-    return contas.filter((conta) => conta.status === filtroStatus);
-  }, [contas, filtroStatus]);
+    if (filtroStatus === 'TODAS') return contasComStatus;
+    return contasComStatus.filter((conta) => conta.status === filtroStatus);
+  }, [contasComStatus, filtroStatus]);
+
+  const contasAPagar = useMemo(() => getContasAPagar(contasComStatus), [contasComStatus]);
+  const totalAPagar = useMemo(() => getTotalAPagar(contasComStatus), [contasComStatus]);
 
   const carregarContas = async () => {
     setCarregando(true);
@@ -127,11 +143,15 @@ const Contas = () => {
 
     try {
       await contaService.atualizarStatus(conta.id, status);
-      setSucesso('Status da conta atualizado com sucesso.');
+      setSucesso(status === 'PAGA' ? 'Conta marcada como paga.' : 'Conta reaberta como pendente.');
       await carregarContas();
     } catch (error) {
       setErro(getApiErrorMessage(error, 'Não foi possível alterar o status da conta.'));
     }
+  };
+
+  const alternarContaPaga = async (conta) => {
+    await alterarStatus(conta, conta.status === 'PAGA' ? 'PENDENTE' : 'PAGA');
   };
 
   const excluirConta = async (conta) => {
@@ -149,7 +169,7 @@ const Contas = () => {
 
   return (
     <Box sx={{ bgcolor: '#F9F9F9', minHeight: '100%', p: { xs: 3, lg: 4 } }}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
         <Box>
           <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
             FINANCEIRO / CONTAS
@@ -168,6 +188,28 @@ const Contas = () => {
           Atualizar
         </Button>
       </Stack>
+
+      <Card sx={{ p: 3, borderRadius: '25px', border: '1px solid #F0F0F0', mb: 3 }}>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'stretch', md: 'center' }} justifyContent="space-between">
+          <Box>
+            <Typography sx={{ color: '#128654', fontWeight: 800 }}>
+              Total A Pagar
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              Soma das contas pendentes e vencidas. Contas marcadas como pagas são removidas deste total.
+            </Typography>
+          </Box>
+
+          <Box sx={{ textAlign: { xs: 'left', md: 'right' } }}>
+            <Typography variant="h4" sx={{ color: '#128654', fontWeight: 800 }}>
+              {formatarMoeda(totalAPagar)}
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+              {contasAPagar.length} conta(s) em aberto
+            </Typography>
+          </Box>
+        </Stack>
+      </Card>
 
       {erro && <Alert severity="error" sx={{ mb: 2 }}>{erro}</Alert>}
       {sucesso && <Alert severity="success" sx={{ mb: 2 }}>{sucesso}</Alert>}
@@ -195,6 +237,10 @@ const Contas = () => {
                 fullWidth
                 InputLabelProps={{ shrink: true }}
               />
+
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                A conta permanece válida durante todo o dia do vencimento e só passa a vencida às 00:00 do dia seguinte.
+              </Typography>
 
               <Button
                 variant="contained"
@@ -235,7 +281,7 @@ const Contas = () => {
                 <CircularProgress sx={{ color: '#128654' }} />
               </Box>
             ) : (
-              <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '15px', border: '1px solid #EEE' }}>
+              <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '15px', border: '1px solid #EEE', overflowX: 'auto' }}>
                 <Table>
                   <TableHead>
                     <TableRow sx={{ bgcolor: '#F6FBF8' }}>
@@ -243,13 +289,14 @@ const Contas = () => {
                       <TableCell sx={{ fontWeight: 800 }}>Vencimento</TableCell>
                       <TableCell sx={{ fontWeight: 800 }}>Valor</TableCell>
                       <TableCell sx={{ fontWeight: 800 }}>Status</TableCell>
+                      <TableCell sx={{ fontWeight: 800 }}>Pagamento</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 800 }}>Ações</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {contasFiltradas.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} align="center">Nenhuma conta encontrada.</TableCell>
+                        <TableCell colSpan={6} align="center">Nenhuma conta encontrada.</TableCell>
                       </TableRow>
                     ) : (
                       contasFiltradas.map((conta) => {
@@ -258,25 +305,34 @@ const Contas = () => {
                         return (
                           <TableRow key={conta.id} hover>
                             <TableCell>{conta.nome}</TableCell>
-                            <TableCell>{conta.dataVencimento}</TableCell>
-                            <TableCell>R$ {Number(conta.valor).toFixed(2)}</TableCell>
+                            <TableCell>{formatarDataBr(conta.dataVencimento)}</TableCell>
+                            <TableCell>{formatarMoeda(conta.valor)}</TableCell>
                             <TableCell>
-                              <Chip label={conta.status} size="small" sx={{ bgcolor: statusColor.bg, color: statusColor.color, fontWeight: 700 }} />
+                              <Stack spacing={0.5}>
+                                <Chip label={statusColor.label} size="small" sx={{ bgcolor: statusColor.bg, color: statusColor.color, fontWeight: 700, width: 'fit-content' }} />
+                                {conta.venceHoje && conta.status !== 'PAGA' && (
+                                  <Typography variant="caption" sx={{ color: '#F57F17', fontWeight: 700 }}>
+                                    Válida até hoje
+                                  </Typography>
+                                )}
+                              </Stack>
+                            </TableCell>
+                            <TableCell>
+                              <FormControlLabel
+                                control={
+                                  <Checkbox
+                                    checked={conta.status === 'PAGA'}
+                                    onChange={() => alternarContaPaga(conta)}
+                                    sx={{ color: '#128654', '&.Mui-checked': { color: '#128654' } }}
+                                  />
+                                }
+                                label="Paga"
+                              />
                             </TableCell>
                             <TableCell align="right">
                               <Button size="small" startIcon={<EditIcon />} onClick={() => editarConta(conta)} sx={{ color: '#128654', textTransform: 'none', fontWeight: 700 }}>
                                 Editar
                               </Button>
-                              {conta.status !== 'PAGA' && (
-                                <Button size="small" onClick={() => alterarStatus(conta, 'PAGA')} sx={{ color: '#128654', textTransform: 'none', fontWeight: 700 }}>
-                                  Pagar
-                                </Button>
-                              )}
-                              {conta.status === 'PAGA' && (
-                                <Button size="small" onClick={() => alterarStatus(conta, 'PENDENTE')} sx={{ color: '#F57F17', textTransform: 'none', fontWeight: 700 }}>
-                                  Reabrir
-                                </Button>
-                              )}
                               <Button size="small" color="error" startIcon={<DeleteOutlineIcon />} onClick={() => excluirConta(conta)} sx={{ textTransform: 'none', fontWeight: 700 }}>
                                 Excluir
                               </Button>

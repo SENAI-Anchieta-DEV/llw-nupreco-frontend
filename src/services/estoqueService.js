@@ -21,6 +21,11 @@ const normalizeEstoque = (data) => {
   };
 };
 
+const buildEstoqueRequest = (produtoId, quantidade) => ({
+  produtoId: String(produtoId || '').trim(),
+  quantidade: Number(quantidade),
+});
+
 const estoqueService = {
   async listar() {
     const response = await api.get('/estoque');
@@ -33,18 +38,12 @@ const estoqueService = {
   },
 
   async adicionar(produtoId, quantidade) {
-    const response = await api.patch('/estoque/adicionar', {
-      produtoId,
-      quantidade: Number(quantidade),
-    });
+    const response = await api.patch('/estoque/adicionar', buildEstoqueRequest(produtoId, quantidade));
     return normalizeItemEstoque(unwrapApiData(response));
   },
 
   async remover(produtoId, quantidade) {
-    const response = await api.patch('/estoque/remover', {
-      produtoId,
-      quantidade: Number(quantidade),
-    });
+    const response = await api.patch('/estoque/remover', buildEstoqueRequest(produtoId, quantidade));
     return normalizeItemEstoque(unwrapApiData(response));
   },
 };

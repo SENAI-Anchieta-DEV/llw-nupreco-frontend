@@ -6,21 +6,56 @@ const toNumber = (value) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const normalizeTipoPrecificacao = (tipo) => {
+  if (tipo === 'PERCENTUAL' || tipo === 'VALOR_FIXO') return tipo;
+  return 'PERCENTUAL';
+};
+
+export const calcularPrecoVenda = (produto) => {
+  const custoProduto = toNumber(produto?.custoProduto ?? produto?.precoCusto ?? produto?.preco ?? 0);
+  const tipoPrecificacao = normalizeTipoPrecificacao(produto?.tipoPrecificacao);
+  const margemLucro = toNumber(produto?.margemLucro);
+  const lucroValor = toNumber(produto?.lucroValor);
+
+  if (tipoPrecificacao === 'PERCENTUAL') {
+    return custoProduto + (custoProduto * margemLucro) / 100;
+  }
+
+  return custoProduto + lucroValor;
+};
+
+export const calcularMargemPercentual = (produto) => {
+  const custoProduto = toNumber(produto?.custoProduto ?? produto?.precoCusto ?? produto?.preco ?? 0);
+  const lucroValor = toNumber(produto?.lucroValor);
+
+  if (custoProduto <= 0) return 0;
+  return (lucroValor / custoProduto) * 100;
+};
+
 export const normalizeProduto = (produto) => {
   if (!produto) return null;
 
-  const precoVenda = produto.precoVenda ?? produto.preco ?? produto.valorVenda ?? produto.custoProduto ?? 0;
+  const custoProduto = toNumber(produto.custoProduto ?? produto.precoCusto ?? produto.preco ?? 0);
+  const tipoPrecificacao = normalizeTipoPrecificacao(produto.tipoPrecificacao);
+  const margemLucro = produto.margemLucro === null || produto.margemLucro === undefined ? null : toNumber(produto.margemLucro);
+  const lucroValor = produto.lucroValor === null || produto.lucroValor === undefined ? null : toNumber(produto.lucroValor);
+  const precoVenda = toNumber(produto.precoVenda ?? calcularPrecoVenda({ custoProduto, tipoPrecificacao, margemLucro, lucroValor }));
+  const lucroUnitario = precoVenda - custoProduto;
 
   return {
     ...produto,
     id: produto.id,
     cod: produto.id,
-    desc: produto.nome ?? produto.desc ?? '',
     nome: produto.nome ?? produto.desc ?? '',
+    desc: produto.nome ?? produto.desc ?? '',
+    custoProduto,
+    tipoPrecificacao,
+    margemLucro,
+    lucroValor,
+    precoVenda,
+    preco: precoVenda,
+    lucroUnitario,
     categoria: produto.categoria ?? 'GERAL',
-    custoProduto: toNumber(produto.custoProduto),
-    precoVenda: toNumber(precoVenda),
-    preco: toNumber(precoVenda),
     qtd: toNumber(produto.qtd ?? produto.quantidade ?? 0),
   };
 };
@@ -31,17 +66,22 @@ const normalizeProdutos = (data) => {
 };
 
 const buildProdutoRequest = (produto) => {
-  const id = String(produto.cod || produto.id || '').trim();
-  const nome = String(produto.desc || produto.nome || '').trim().toUpperCase();
-  const preco = toNumber(produto.precoVenda ?? produto.preco ?? produto.custoProduto);
+  const tipoPrecificacao = normalizeTipoPrecificacao(produto.tipoPrecificacao);
+  const custoProduto = toNumber(produto.custoProduto ?? produto.precoCusto ?? produto.preco ?? 0);
+  const margemLucro = tipoPrecificacao === 'PERCENTUAL'
+    ? toNumber(produto.margemLucro)
+    : null;
+  const lucroValor = tipoPrecificacao === 'VALOR_FIXO'
+    ? toNumber(produto.lucroValor)
+    : null;
 
   return {
-    id,
-    nome,
-    custoProduto: preco,
-    tipoPrecificacao: produto.tipoPrecificacao || 'VALOR_FIXO',
-    margemLucro: produto.tipoPrecificacao === 'PERCENTUAL' ? toNumber(produto.margemLucro) : null,
-    lucroValor: produto.tipoPrecificacao === 'PERCENTUAL' ? null : toNumber(produto.lucroValor ?? 0),
+    id: String(produto.id || produto.cod || '').trim(),
+    nome: String(produto.nome || produto.desc || '').trim(),
+    custoProduto,
+    tipoPrecificacao,
+    margemLucro,
+    lucroValor,
   };
 };
 
