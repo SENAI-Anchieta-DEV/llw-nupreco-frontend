@@ -19,6 +19,7 @@ import StorefrontIcon from '@mui/icons-material/StorefrontOutlined';
 import ReportProblemIcon from '@mui/icons-material/WarningAmber';
 import InventoryIcon from '@mui/icons-material/AllInbox';
 import CategoryIcon from '@mui/icons-material/CategoryOutlined';
+import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
 import LogoutIcon from '@mui/icons-material/ExitToAppOutlined';
 
 import useAuth from '../hooks/useAuth';
@@ -37,6 +38,7 @@ const SidebarMenu = ({ modulos }) => {
     if (rota) {
       navigate(rota);
     }
+
     setAberto(false);
   };
 
@@ -54,6 +56,7 @@ const SidebarMenu = ({ modulos }) => {
     { text: 'Contas', icon: <ReportProblemIcon />, rota: '/contas' },
     { text: 'Estoque', icon: <InventoryIcon />, rota: '/estoque' },
     { text: 'Produtos', icon: <CategoryIcon />, rota: '/produtos' },
+    { text: 'Etiqueta Digital', icon: <SellOutlinedIcon />, rota: '/etiqueta-digital' },
     { text: 'Sair', icon: <LogoutIcon />, action: sair },
   ];
 
@@ -106,6 +109,7 @@ const SidebarMenu = ({ modulos }) => {
                 <ListItemIcon sx={{ color: 'white', minWidth: 50 }}>
                   {item.icon}
                 </ListItemIcon>
+
                 <ListItemText
                   primary={item.text}
                   primaryTypographyProps={{ fontWeight: 'bold' }}
@@ -141,3 +145,5 @@ const SidebarMenu = ({ modulos }) => {
 };
 
 export default SidebarMenu;
+
+

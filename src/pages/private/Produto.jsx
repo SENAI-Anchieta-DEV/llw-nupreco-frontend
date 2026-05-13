@@ -4,10 +4,10 @@ import {
   Box,
   Button,
   Card,
-  Chip,
   CircularProgress,
   Grid,
-  MenuItem,
+  IconButton,
+  InputAdornment,
   Paper,
   Stack,
   Table,
@@ -17,16 +17,22 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
+
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import EditIcon from '@mui/icons-material/EditOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SaveIcon from '@mui/icons-material/Save';
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
+import CalculateOutlinedIcon from '@mui/icons-material/CalculateOutlined';
 
-import produtoService, { calcularMargemPercentual, calcularPrecoVenda } from '../../services/produtoService';
+import { useNavigate } from 'react-router-dom';
+
+import produtoService from '../../services/produtoService';
 import estoqueService from '../../services/estoqueService';
 import iotService from '../../services/iotService';
 import { getApiErrorMessage } from '../../services/apiResponse';
@@ -36,19 +42,46 @@ const initialForm = {
   id: '',
   nome: '',
   custoProduto: '',
-  tipoPrecificacao: 'PERCENTUAL',
-  margemLucro: '',
-  lucroValor: '',
-  qtd: '',
+  qtd: '1',
+  precoVendaManual: '',
+  margemReal: '',
+  origemPrecificacao: 'SUGERIDO',
+};
+
+const toNumber = (value) => {
+  const number = Number(String(value ?? '').replace(',', '.'));
+  return Number.isFinite(number) ? number : 0;
 };
 
 const formatMoney = (value) => {
-  const number = Number(value || 0);
-  return number.toFixed(2);
+  return Number(value || 0).toFixed(2);
+};
+
+const calcularPrecoSugerido = (custo) => {
+  const custoNumerico = toNumber(custo);
+  if (custoNumerico <= 0) return 0;
+  return custoNumerico + custoNumerico * 0.5;
+};
+
+const calcularMargemPeloPreco = (custo, precoVenda) => {
+  const custoNumerico = toNumber(custo);
+  const precoNumerico = toNumber(precoVenda);
+
+  if (custoNumerico <= 0 || precoNumerico <= 0) return '';
+  return ((precoNumerico - custoNumerico) / custoNumerico) * 100;
+};
+
+const calcularPrecoPelaMargem = (custo, margem) => {
+  const custoNumerico = toNumber(custo);
+  const margemNumerica = toNumber(margem);
+
+  if (custoNumerico <= 0 || margem === '') return '';
+  return custoNumerico + (custoNumerico * margemNumerica) / 100;
 };
 
 const Produto = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
 
   const [produtos, setProdutos] = useState([]);
   const [itensEstoque, setItensEstoque] = useState([]);
@@ -58,36 +91,32 @@ const Produto = () => {
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
 
+  const precoSugerido = useMemo(() => {
+    return calcularPrecoSugerido(form.custoProduto);
+  }, [form.custoProduto]);
+
   const produtosComEstoque = useMemo(() => {
-    return produtos.map((produto) => {
-      const itemEstoque = itensEstoque.find((item) => item.produtoId === produto.id);
-      return {
-        ...produto,
-        qtd: itemEstoque?.quantidade ?? produto.qtd ?? 0,
-        lucroUnitario: Number(produto.precoVenda ?? 0) - Number(produto.custoProduto ?? 0),
-      };
-    });
+    return produtos
+      .map((produto) => {
+        const itemEstoque = itensEstoque.find((item) => item.produtoId === produto.id);
+        const custoProduto = toNumber(produto.custoProduto);
+        const precoVenda = toNumber(produto.precoVenda);
+        const margemReal = custoProduto > 0 ? ((precoVenda - custoProduto) / custoProduto) * 100 : 0;
+
+        return {
+          ...produto,
+          qtd: itemEstoque?.quantidade ?? produto.qtd ?? 0,
+          precoSugerido: calcularPrecoSugerido(custoProduto),
+          margemReal,
+          lucroUnitario: precoVenda - custoProduto,
+        };
+      })
+      .sort((a, b) =>
+        String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR', {
+          sensitivity: 'base',
+        })
+      );
   }, [produtos, itensEstoque]);
-
-  const preview = useMemo(() => {
-    const custoProduto = Number(form.custoProduto || 0);
-
-    if (!custoProduto || custoProduto <= 0) {
-      return null;
-    }
-
-    const precoVenda = calcularPrecoVenda(form);
-    const lucroUnitario = precoVenda - custoProduto;
-    const margemPercentual = form.tipoPrecificacao === 'VALOR_FIXO'
-      ? calcularMargemPercentual(form)
-      : Number(form.margemLucro || 0);
-
-    return {
-      precoVenda,
-      lucroUnitario,
-      margemPercentual,
-    };
-  }, [form]);
 
   const carregarDados = async () => {
     setCarregando(true);
@@ -112,85 +141,147 @@ const Produto = () => {
     carregarDados();
   }, []);
 
+  const limparCampos = () => {
+    setForm(initialForm);
+    setErro('');
+    setSucesso('');
+  };
+
   const alterarCampo = (event) => {
     const { name, value } = event.target;
+
     setForm((prev) => {
       const next = { ...prev, [name]: value };
 
-      if (name === 'tipoPrecificacao') {
-        return {
-          ...next,
-          margemLucro: value === 'PERCENTUAL' ? prev.margemLucro : '',
-          lucroValor: value === 'VALOR_FIXO' ? prev.lucroValor : '',
-        };
+      if (name === 'custoProduto') {
+        if (prev.origemPrecificacao === 'PRECO' && prev.precoVendaManual !== '') {
+          next.margemReal = calcularMargemPeloPreco(value, prev.precoVendaManual);
+        }
+
+        if (prev.origemPrecificacao === 'MARGEM' && prev.margemReal !== '') {
+          next.precoVendaManual = calcularPrecoPelaMargem(value, prev.margemReal);
+        }
+
+        return next;
+      }
+
+      if (name === 'precoVendaManual') {
+        next.origemPrecificacao = 'PRECO';
+        next.margemReal = value === '' ? '' : calcularMargemPeloPreco(prev.custoProduto, value);
+        return next;
+      }
+
+      if (name === 'margemReal') {
+        next.origemPrecificacao = 'MARGEM';
+        next.precoVendaManual = value === '' ? '' : calcularPrecoPelaMargem(prev.custoProduto, value);
+        return next;
       }
 
       return next;
     });
   };
 
-  const limparCampos = () => {
-    setForm(initialForm);
-  };
-
-  const editarProduto = (produto) => {
-    setForm({
-      idInterno: produto.id,
-      id: produto.id,
-      nome: produto.nome,
-      custoProduto: produto.custoProduto ?? '',
-      tipoPrecificacao: produto.tipoPrecificacao || 'PERCENTUAL',
-      margemLucro: produto.margemLucro ?? '',
-      lucroValor: produto.lucroValor ?? '',
-      qtd: produto.qtd ?? 0,
-    });
-  };
-
   const validarFormulario = () => {
-    if (!form.id || !form.nome || !form.custoProduto || !form.tipoPrecificacao || form.qtd === '') {
-      return 'Preencha código, nome, custo, tipo de precificação e quantidade.';
+    if (!form.id || !form.nome || !form.custoProduto || form.qtd === '') {
+      return 'Preencha quantidade inicial, código/EAN, nome do produto e valor de custo.';
     }
 
-    if (Number(form.custoProduto) <= 0) {
-      return 'O custo do produto deve ser maior que zero.';
+    if (toNumber(form.custoProduto) <= 0) {
+      return 'O valor de custo deve ser maior que zero.';
     }
 
-    if (Number(form.qtd) < 0) {
-      return 'A quantidade não pode ser negativa.';
+    if (toNumber(form.qtd) < 0) {
+      return 'A quantidade inicial não pode ser negativa.';
     }
 
-    if (form.tipoPrecificacao === 'PERCENTUAL' && (form.margemLucro === '' || Number(form.margemLucro) < 0)) {
-      return 'Informe uma margem de lucro percentual válida.';
+    if (form.precoVendaManual !== '' && toNumber(form.precoVendaManual) < toNumber(form.custoProduto)) {
+      return 'O preço de venda não pode ser menor que o valor de custo.';
     }
 
-    if (form.tipoPrecificacao === 'VALOR_FIXO' && (form.lucroValor === '' || Number(form.lucroValor) < 0)) {
-      return 'Informe um lucro fixo válido.';
+    if (form.margemReal !== '' && toNumber(form.margemReal) < 0) {
+      return 'A margem real não pode ser negativa.';
     }
 
     return null;
   };
 
-  const salvarOuRessalvar = async () => {
-    setErro('');
-    setSucesso('');
+  const montarProdutoParaApi = () => {
+    const custoProduto = toNumber(form.custoProduto);
 
-    const mensagemErro = validarFormulario();
-
-    if (mensagemErro) {
-      setErro(mensagemErro);
-      return;
+    if (form.origemPrecificacao === 'PRECO' && form.precoVendaManual !== '') {
+      return {
+        id: form.id,
+        nome: form.nome,
+        custoProduto,
+        tipoPrecificacao: 'VALOR_FIXO',
+        margemLucro: '',
+        lucroValor: toNumber(form.precoVendaManual) - custoProduto,
+      };
     }
 
-    setSalvando(true);
+    const margemLucro = form.margemReal !== '' ? toNumber(form.margemReal) : 50;
+
+    return {
+      id: form.id,
+      nome: form.nome,
+      custoProduto,
+      tipoPrecificacao: 'PERCENTUAL',
+      margemLucro,
+      lucroValor: '',
+    };
+  };
+
+const salvarProduto = async () => {
+  setErro('');
+  setSucesso('');
+
+  const mensagemErro = validarFormulario();
+
+  if (mensagemErro) {
+    setErro(mensagemErro);
+    return;
+  }
+
+  setSalvando(true);
+
+  try {
+    const produtoParaSalvar = montarProdutoParaApi();
+
+    const produtoSalvo = form.idInterno
+      ? await produtoService.atualizar(form.idInterno, produtoParaSalvar)
+      : await produtoService.criar(produtoParaSalvar);
+
+    const quantidadeDesejada = toNumber(form.qtd);
+
+    setProdutos((prev) => {
+      const semProdutoAtual = prev.filter((produto) => produto.id !== produtoSalvo.id);
+
+      return [...semProdutoAtual, produtoSalvo].sort((a, b) =>
+        String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR', {
+          sensitivity: 'base',
+        })
+      );
+    });
+
+    setItensEstoque((prev) => {
+      const semEstoqueAtual = prev.filter((item) => item.produtoId !== produtoSalvo.id);
+
+      return [
+        ...semEstoqueAtual,
+        {
+          produtoId: produtoSalvo.id,
+          quantidade: quantidadeDesejada,
+        },
+      ];
+    });
+
+    setForm({ ...initialForm });
+    setSucesso('Produto salvo com sucesso.');
+    setSalvando(false);
 
     try {
-      const produtoSalvo = form.idInterno
-        ? await produtoService.atualizar(form.idInterno, form)
-        : await produtoService.criar(form);
-
       const estoqueAtual = itensEstoque.find((item) => item.produtoId === produtoSalvo.id);
       const quantidadeAtual = Number(estoqueAtual?.quantidade ?? 0);
-      const quantidadeDesejada = Number(form.qtd || 0);
       const diferenca = quantidadeDesejada - quantidadeAtual;
 
       if (diferenca > 0) {
@@ -200,21 +291,35 @@ const Produto = () => {
       if (diferenca < 0) {
         await estoqueService.remover(produtoSalvo.id, Math.abs(diferenca));
       }
-
-      try {
-        await iotService.enviar(produtoSalvo.nome, produtoSalvo.precoVenda);
-      } catch (iotError) {
-        // A falha no display não deve impedir o cadastro do produto.
-      }
-
-      setSucesso('Produto salvo com sucesso. O preço de venda foi calculado automaticamente.');
-      limparCampos();
-      await carregarDados();
-    } catch (error) {
-      setErro(getApiErrorMessage(error, 'Não foi possível salvar o produto.'));
-    } finally {
-      setSalvando(false);
+    } catch {
+      setErro('Produto salvo, mas não foi possível atualizar o estoque automaticamente.');
     }
+
+    try {
+      await iotService.enviar(produtoSalvo.nome, produtoSalvo.precoVenda);
+    } catch {
+      // A falha no display não deve impedir o cadastro do produto.
+    }
+  } catch (error) {
+    setErro(getApiErrorMessage(error, 'Não foi possível salvar o produto.'));
+    setSalvando(false);
+  }
+};
+
+
+  const editarProduto = (produto) => {
+    const margemReal = calcularMargemPeloPreco(produto.custoProduto, produto.precoVenda);
+
+    setForm({
+      idInterno: produto.id,
+      id: produto.id,
+      nome: produto.nome,
+      custoProduto: produto.custoProduto ?? '',
+      qtd: produto.qtd ?? 0,
+      precoVendaManual: produto.precoVenda ?? '',
+      margemReal: margemReal === '' ? '' : Number(margemReal).toFixed(2),
+      origemPrecificacao: produto.tipoPrecificacao === 'VALOR_FIXO' ? 'PRECO' : 'MARGEM',
+    });
   };
 
   const excluirProduto = async (produto) => {
@@ -223,31 +328,53 @@ const Produto = () => {
 
     try {
       await produtoService.excluir(produto.id);
+
+      setProdutos((prev) => prev.filter((item) => item.id !== produto.id));
+      setItensEstoque((prev) => prev.filter((item) => item.produtoId !== produto.id));
+
       setSucesso('Produto excluído com sucesso.');
-      await carregarDados();
     } catch (error) {
       setErro(getApiErrorMessage(error, 'Não foi possível excluir o produto.'));
     }
+  };
+
+  const campoPadrao = {
+    '& .MuiOutlinedInput-root': {
+      height: 52,
+      borderRadius: '22px',
+      bgcolor: theme.palette.mode === 'dark' ? '#1F2933' : '#F2F2F2',
+      fontWeight: 700,
+    },
+    '& .MuiInputLabel-root': {
+      color: '#007F4E',
+      fontWeight: 900,
+      fontSize: '0.72rem',
+      textTransform: 'uppercase',
+    },
   };
 
   const ActionCard = ({ label, icon, onClick }) => (
     <Card
       onClick={onClick}
       sx={{
-        p: 2,
-        borderRadius: '25px',
-        textAlign: 'center',
+        width: 145,
+        height: 112,
+        borderRadius: '18px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
         cursor: 'pointer',
-        transition: '0.3s',
+        border: '1px solid #EEEEEE',
+        boxShadow: '0 7px 18px rgba(0,0,0,0.06)',
+        transition: '0.2s ease',
         '&:hover': {
-          transform: 'translateY(-5px)',
-          boxShadow: theme.palette.mode === 'dark'
-            ? '0px 10px 20px rgba(0,0,0,0.35)'
-            : '0px 10px 20px rgba(0,0,0,0.1)',
+          transform: 'translateY(-3px)',
+          boxShadow: '0 10px 22px rgba(0,0,0,0.09)',
         },
       }}
     >
-      <Typography variant="body2" sx={{ color: '#128654', fontWeight: 'bold', mb: 1 }}>
+      <Typography sx={{ color: '#008653', fontWeight: 900, fontSize: '0.78rem', mb: 1 }}>
         {label}
       </Typography>
       {icon}
@@ -255,14 +382,21 @@ const Produto = () => {
   );
 
   return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100%', p: { xs: 3, lg: 4 } }}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+    <Box
+      sx={{
+        bgcolor: theme.palette.mode === 'dark' ? 'background.default' : '#F8F8F8',
+        height: '100%',
+        maxHeight: '100vh',
+        overflow: 'hidden',
+        p: { xs: 3, lg: 4 },
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3, flexShrink: 0 }}>
         <Box>
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
-            CADASTRO / PRODUTOS
-          </Typography>
-          <Typography variant="h4" sx={{ color: '#128654', fontWeight: 800 }}>
-            Produtos
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 900 }}>
+            CONTROLE DE PRODUTOS
           </Typography>
         </Box>
 
@@ -270,136 +404,281 @@ const Produto = () => {
           variant="outlined"
           startIcon={<RefreshIcon />}
           onClick={carregarDados}
-          sx={{ borderColor: '#128654', color: '#128654', textTransform: 'none', fontWeight: 700 }}
+          sx={{
+            borderColor: '#128654',
+            color: '#128654',
+            textTransform: 'none',
+            fontWeight: 800,
+            borderRadius: '12px',
+          }}
         >
           Atualizar
         </Button>
       </Stack>
 
-      {erro && <Alert severity="error" sx={{ mb: 2 }}>{erro}</Alert>}
-      {sucesso && <Alert severity="success" sx={{ mb: 2 }}>{sucesso}</Alert>}
+      <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: 3, flexShrink: 0 }}>
+        <ActionCard
+          label="NOVO PRODUTO"
+          onClick={limparCampos}
+          icon={<AddCircleOutlineIcon sx={{ color: '#008653', fontSize: '2.6rem' }} />}
+        />
 
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={4} onClick={limparCampos}>
-          <ActionCard label="NOVO PRODUTO" icon={<AddCircleOutlineIcon sx={{ color: '#128654', fontSize: '3rem' }} />} />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <ActionCard label="PRODUTOS CADASTRADOS" icon={<EditIcon sx={{ color: '#128654', fontSize: '3rem' }} />} onClick={carregarDados} />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <ActionCard label="ATUALIZAR LISTA" icon={<RefreshIcon sx={{ color: '#128654', fontSize: '3rem' }} />} onClick={carregarDados} />
-        </Grid>
-      </Grid>
+        <ActionCard
+          label="VER ESTOQUE"
+          onClick={() => navigate('/estoque')}
+          icon={<Inventory2OutlinedIcon sx={{ color: '#1976D2', fontSize: '2.6rem' }} />}
+        />
+      </Stack>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
-          <Card sx={{ p: 3, borderRadius: '25px', border: '1px solid #F0F0F0' }}>
-            <Typography sx={{ color: '#128654', fontWeight: 800, mb: 2 }}>
-              {form.idInterno ? 'Editar Produto' : 'Novo Produto'}
-            </Typography>
+      {erro && <Alert severity="error" sx={{ mb: 2, flexShrink: 0 }}>{erro}</Alert>}
+      {sucesso && <Alert severity="success" sx={{ mb: 2, flexShrink: 0 }}>{sucesso}</Alert>}
 
-            <Stack spacing={2}>
-              <TextField label="Código De Barras" name="id" value={form.id} onChange={alterarCampo} fullWidth disabled={!!form.idInterno} />
-              <TextField label="Nome Do Produto" name="nome" value={form.nome} onChange={alterarCampo} fullWidth />
-              <TextField label="Custo Do Produto" name="custoProduto" type="number" value={form.custoProduto} onChange={alterarCampo} fullWidth />
-              <TextField select label="Tipo De Precificação" name="tipoPrecificacao" value={form.tipoPrecificacao} onChange={alterarCampo} fullWidth>
-                <MenuItem value="PERCENTUAL">Percentual</MenuItem>
-                <MenuItem value="VALOR_FIXO">Valor Fixo</MenuItem>
-              </TextField>
+      <Card
+        sx={{
+          p: { xs: 2.5, lg: 3.5 },
+          borderRadius: '28px',
+          border: '1px solid #EFEFEF',
+          boxShadow: '0 12px 30px rgba(0,0,0,0.04)',
+          mb: 3,
+          flexShrink: 0,
+        }}
+      >
+        <Typography sx={{ color: '#008653', fontWeight: 900, mb: 3 }}>
+          {form.idInterno ? 'CADASTRO DE PRODUTO / EDITANDO PRODUTO' : 'CADASTRO DE NOVO PRODUTO'}
+        </Typography>
 
-              {form.tipoPrecificacao === 'PERCENTUAL' ? (
-                <TextField label="Margem De Lucro (%)" name="margemLucro" type="number" value={form.margemLucro} onChange={alterarCampo} fullWidth />
-              ) : (
-                <TextField label="Lucro Fixo (R$)" name="lucroValor" type="number" value={form.lucroValor} onChange={alterarCampo} fullWidth />
-              )}
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} md={1.4}>
+            <TextField
+              label="QTD INICIAL"
+              name="qtd"
+              type="number"
+              value={form.qtd}
+              onChange={alterarCampo}
+              fullWidth
+              sx={campoPadrao}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
 
-              <TextField label="Quantidade Inicial Em Estoque" name="qtd" type="number" value={form.qtd} onChange={alterarCampo} fullWidth />
+          <Grid item xs={12} md={2}>
+            <TextField
+              label="CÓDIGO / EAN"
+              name="id"
+              value={form.id}
+              onChange={alterarCampo}
+              disabled={Boolean(form.idInterno)}
+              fullWidth
+              sx={campoPadrao}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
 
-              {preview && (
-                <Alert severity="info">
-                  {form.tipoPrecificacao === 'PERCENTUAL'
-                    ? `Prévia: o preço final calculado será R$ ${formatMoney(preview.precoVenda)}.`
-                    : `Prévia: a margem de lucro estimada será ${preview.margemPercentual.toFixed(2)}% e o preço final será R$ ${formatMoney(preview.precoVenda)}.`}
-                </Alert>
-              )}
+          <Grid item xs={12} md={2.2}>
+            <TextField
+              label="NOME DO PRODUTO"
+              name="nome"
+              value={form.nome}
+              onChange={alterarCampo}
+              fullWidth
+              sx={campoPadrao}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
 
-              <Button
-                variant="contained"
-                startIcon={<SaveIcon />}
-                disabled={salvando}
-                onClick={salvarOuRessalvar}
-                sx={{ bgcolor: '#128654', py: 1.3, borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}
+          <Grid item xs={12} md={1.8}>
+            <TextField
+              label="VALOR DE CUSTO"
+              name="custoProduto"
+              type="number"
+              value={form.custoProduto}
+              onChange={alterarCampo}
+              fullWidth
+              sx={campoPadrao}
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                startAdornment: <InputAdornment position="start">R$</InputAdornment>,
+              }}
+            />
+          </Grid>
+
+          <Grid item xs={12} md={1.8}>
+            <TextField
+              label="SUGERIDO (+50%)"
+              value={`R$ ${formatMoney(precoSugerido)}`}
+              fullWidth
+              disabled
+              sx={campoPadrao}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+
+          <Grid item xs={12} md={1.8}>
+            <TextField
+              label="PREÇO DE VENDA"
+              name="precoVendaManual"
+              type="number"
+              value={form.precoVendaManual}
+              onChange={alterarCampo}
+              fullWidth
+              sx={campoPadrao}
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                startAdornment: <InputAdornment position="start">R$</InputAdornment>,
+              }}
+            />
+          </Grid>
+
+          <Grid item xs={12} md={1.6}>
+            <TextField
+              label="MARGEM REAL"
+              name="margemReal"
+              type="number"
+              value={form.margemReal}
+              onChange={alterarCampo}
+              fullWidth
+              sx={campoPadrao}
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                endAdornment: <InputAdornment position="end">%</InputAdornment>,
+              }}
+            />
+          </Grid>
+
+          <Grid item xs={12} md={0.4}>
+            <Tooltip title="O sistema calcula automaticamente preço pela margem ou margem pelo preço.">
+              <Box
+                sx={{
+                  width: 42,
+                  height: 42,
+                  borderRadius: '50%',
+                  bgcolor: '#F2F2F2',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#9E9E9E',
+                }}
               >
-                {salvando ? 'Salvando...' : 'Salvar Produto'}
-              </Button>
-            </Stack>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} md={8}>
-          <Card sx={{ p: 3, borderRadius: '25px', border: '1px solid #F0F0F0' }}>
-            <Typography sx={{ color: '#128654', fontWeight: 800, mb: 2 }}>
-              Produtos Cadastrados
-            </Typography>
-
-            {carregando ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-                <CircularProgress sx={{ color: '#128654' }} />
+                <CalculateOutlinedIcon fontSize="small" />
               </Box>
-            ) : (
-              <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '15px', border: '1px solid #EEE' }}>
-                <Table>
-                  <TableHead>
-                    <TableRow sx={{ bgcolor: '#F6FBF8' }}>
-                      <TableCell sx={{ fontWeight: 800 }}>Código</TableCell>
-                      <TableCell sx={{ fontWeight: 800 }}>Produto</TableCell>
-                      <TableCell sx={{ fontWeight: 800 }}>Custo</TableCell>
-                      <TableCell sx={{ fontWeight: 800 }}>Tipo</TableCell>
-                      <TableCell sx={{ fontWeight: 800 }}>Margem</TableCell>
-                      <TableCell sx={{ fontWeight: 800 }}>Lucro Fixo</TableCell>
-                      <TableCell sx={{ fontWeight: 800 }}>Preço Venda</TableCell>
-                      <TableCell sx={{ fontWeight: 800 }}>Qtd.</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 800 }}>Ações</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {produtosComEstoque.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={9} align="center">Nenhum produto encontrado.</TableCell>
-                      </TableRow>
-                    ) : (
-                      produtosComEstoque.map((produto) => (
-                        <TableRow key={produto.id} hover>
-                          <TableCell>{produto.id}</TableCell>
-                          <TableCell>{produto.nome}</TableCell>
-                          <TableCell>R$ {formatMoney(produto.custoProduto)}</TableCell>
-                          <TableCell>
-                            <Chip label={produto.tipoPrecificacao || 'PERCENTUAL'} size="small" sx={{ bgcolor: '#E8F5E9', fontWeight: 700 }} />
-                          </TableCell>
-                          <TableCell>{produto.margemLucro !== null && produto.margemLucro !== undefined ? `${Number(produto.margemLucro).toFixed(2)}%` : '-'}</TableCell>
-                          <TableCell>{produto.lucroValor !== null && produto.lucroValor !== undefined ? `R$ ${formatMoney(produto.lucroValor)}` : '-'}</TableCell>
-                          <TableCell>R$ {formatMoney(produto.precoVenda)}</TableCell>
-                          <TableCell>{produto.qtd}</TableCell>
-                          <TableCell align="right">
-                            <Button size="small" startIcon={<EditIcon />} onClick={() => editarProduto(produto)} sx={{ color: '#128654', textTransform: 'none', fontWeight: 700 }}>
-                              Editar
-                            </Button>
-                            <Button size="small" color="error" startIcon={<DeleteOutlineIcon />} onClick={() => excluirProduto(produto)} sx={{ textTransform: 'none', fontWeight: 700 }}>
-                              Excluir
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
-          </Card>
+            </Tooltip>
+          </Grid>
         </Grid>
-      </Grid>
+
+        <Stack direction="row" justifyContent="flex-end" sx={{ mt: 3 }}>
+          <Button
+            variant="contained"
+            startIcon={<SaveIcon />}
+            disabled={salvando}
+            onClick={salvarProduto}
+            sx={{
+              bgcolor: '#0B8754',
+              px: 5,
+              py: 1.3,
+              borderRadius: '24px',
+              textTransform: 'uppercase',
+              fontWeight: 900,
+              boxShadow: '0 7px 13px rgba(0,0,0,0.18)',
+              '&:hover': { bgcolor: '#076B42' },
+            }}
+          >
+            {salvando ? 'SALVANDO...' : 'SALVAR NO ESTOQUE'}
+          </Button>
+        </Stack>
+      </Card>
+
+      <Card
+        sx={{
+          p: { xs: 2.5, lg: 3 },
+          borderRadius: '25px',
+          border: '1px solid #F0F0F0',
+          boxShadow: '0 10px 26px rgba(0,0,0,0.035)',
+          flex: 1,
+          minHeight: 0,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <Typography sx={{ color: '#008653', fontWeight: 900, mb: 2, flexShrink: 0 }}>
+          PRODUTOS CADASTRADOS
+        </Typography>
+
+        {carregando ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+            <CircularProgress sx={{ color: '#128654' }} />
+          </Box>
+        ) : (
+          <TableContainer
+            component={Paper}
+            elevation={0}
+            sx={{
+              borderRadius: '16px',
+              border: '1px solid #EEEEEE',
+              flex: 1,
+              minHeight: 0,
+              overflowY: 'auto',
+            }}
+          >
+            <Table stickyHeader>
+              <TableHead>
+                <TableRow sx={{ bgcolor: '#F6FBF8' }}>
+                  <TableCell sx={{ fontWeight: 900, bgcolor: '#F6FBF8' }}>Código</TableCell>
+                  <TableCell sx={{ fontWeight: 900, bgcolor: '#F6FBF8' }}>Produto</TableCell>
+                  <TableCell sx={{ fontWeight: 900, bgcolor: '#F6FBF8' }}>Qtd.</TableCell>
+                  <TableCell sx={{ fontWeight: 900, bgcolor: '#F6FBF8' }}>Custo</TableCell>
+                  <TableCell sx={{ fontWeight: 900, bgcolor: '#F6FBF8' }}>Sugerido (+50%)</TableCell>
+                  <TableCell sx={{ fontWeight: 900, bgcolor: '#F6FBF8' }}>Preço De Venda</TableCell>
+                  <TableCell sx={{ fontWeight: 900, bgcolor: '#F6FBF8' }}>Margem Real</TableCell>
+                  <TableCell sx={{ fontWeight: 900, bgcolor: '#F6FBF8' }}>Lucro Unitário</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 900, bgcolor: '#F6FBF8' }}>Ações</TableCell>
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
+                {produtosComEstoque.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
+                      Nenhum produto cadastrado.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  produtosComEstoque.map((produto) => (
+                    <TableRow key={produto.id} hover>
+                      <TableCell>{produto.id}</TableCell>
+                      <TableCell sx={{ fontWeight: 800 }}>{produto.nome}</TableCell>
+                      <TableCell>{produto.qtd}</TableCell>
+                      <TableCell>R$ {formatMoney(produto.custoProduto)}</TableCell>
+                      <TableCell>R$ {formatMoney(produto.precoSugerido)}</TableCell>
+                      <TableCell sx={{ color: '#128654', fontWeight: 900 }}>
+                        R$ {formatMoney(produto.precoVenda)}
+                      </TableCell>
+                      <TableCell>{Number(produto.margemReal || 0).toFixed(2)}%</TableCell>
+                      <TableCell>R$ {formatMoney(produto.lucroUnitario)}</TableCell>
+                      <TableCell align="right">
+                        <Tooltip title="Editar Produto">
+                          <IconButton onClick={() => editarProduto(produto)}>
+                            <EditOutlinedIcon sx={{ color: '#F4B000' }} />
+                          </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title="Excluir Produto">
+                          <IconButton onClick={() => excluirProduto(produto)}>
+                            <DeleteOutlineIcon sx={{ color: '#C62828' }} />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Card>
     </Box>
   );
 };
 
 export default Produto;
+
+

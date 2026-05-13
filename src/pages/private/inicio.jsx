@@ -1,6 +1,23 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Box, Typography, Card, IconButton, Stack, CssBaseline, Drawer, List, ListItem, ListItemIcon, ListItemText, Badge, Menu, MenuItem } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Card,
+  IconButton,
+  Stack,
+  CssBaseline,
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Badge,
+  Menu,
+  MenuItem,
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+
+import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
 
 // Ícones da identidade visual NuPreço
 import MenuIcon from '@mui/icons-material/Menu';
@@ -79,67 +96,183 @@ const Inicio = ({
     { text: 'Contas', icon: <ReportProblemIcon />, action: () => navigate('/contas') },
     { text: 'Estoque', icon: <InventoryIcon />, action: () => navigate('/estoque') },
     { text: 'Produtos', icon: <CategoryIcon />, action: () => navigate('/produtos') },
+    { text: 'Etiqueta Digital', icon: <SellOutlinedIcon />, action: () => navigate('/etiqueta-digital') },
     { text: 'Sair', icon: <LogoutIcon />, action: sair },
   ];
 
   return (
-    <Box sx={{ display: 'flex', bgcolor: '#F9F9F9', minHeight: '100vh', width: '100%', overflow: 'hidden' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        bgcolor: '#F9F9F9',
+        minHeight: '100vh',
+        width: '100%',
+        overflow: 'hidden',
+      }}
+    >
       <CssBaseline />
 
-      {/* MENU LATERAL (DRAWER) */}
+      {/* MENU LATERAL */}
       <Drawer
         anchor="left"
         open={menuAberto}
         onClose={toggleMenu}
-        PaperProps={{ sx: { width: 280, bgcolor: '#128654', color: 'white', pt: 2 } }}
+        PaperProps={{
+          sx: {
+            width: 280,
+            bgcolor: '#128654',
+            color: 'white',
+            pt: 2,
+          },
+        }}
       >
-        <Typography variant="h5" sx={{ p: 3, fontWeight: 'bold', textAlign: 'center' }}>NuPreço</Typography>
+        <Typography
+          variant="h5"
+          sx={{
+            p: 3,
+            fontWeight: 'bold',
+            textAlign: 'center',
+          }}
+        >
+          NuPreço
+        </Typography>
+
         <List>
           {modulos.map((item) => (
-            <ListItem button key={item.text} onClick={() => { item.action?.(); toggleMenu(); }} sx={{ py: 2 }}>
-              <ListItemIcon sx={{ color: 'white', minWidth: 50 }}>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} primaryTypographyProps={{ fontWeight: 'bold' }} />
+            <ListItem
+              button
+              key={item.text}
+              onClick={() => {
+                item.action?.();
+                toggleMenu();
+              }}
+              sx={{ py: 2 }}
+            >
+              <ListItemIcon
+                sx={{
+                  color: 'white',
+                  minWidth: 50,
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
+
+              <ListItemText
+                primary={item.text}
+                primaryTypographyProps={{
+                  fontWeight: 'bold',
+                }}
+              />
             </ListItem>
           ))}
         </List>
       </Drawer>
 
       {/* SIDEBAR FIXA */}
-      <Box sx={{
-        width: { xs: 70, lg: 85 }, bgcolor: '#128654', display: 'flex', flexDirection: 'column',
-        alignItems: 'center', py: 3, minHeight: '100vh', zIndex: 1200, flexShrink: 0,
-        borderTopRightRadius: '15px', borderBottomRightRadius: '15px'
-      }}>
+      <Box
+        sx={{
+          width: { xs: 70, lg: 85 },
+          bgcolor: '#128654',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          py: 3,
+          minHeight: '100vh',
+          zIndex: 1200,
+          flexShrink: 0,
+          borderTopRightRadius: '15px',
+          borderBottomRightRadius: '15px',
+        }}
+      >
         <IconButton onClick={toggleMenu} sx={{ color: 'white' }}>
-          <MenuIcon sx={{ fontSize: { xs: '2.5rem', lg: '2.8rem' } }} />
+          <MenuIcon
+            sx={{
+              fontSize: {
+                xs: '2.5rem',
+                lg: '2.8rem',
+              },
+            }}
+          />
         </IconButton>
       </Box>
 
       {/* ÁREA CENTRAL */}
-      <Box sx={{ flexGrow: 1, minWidth: 0, px: { xs: 2, sm: 3, lg: 8 }, py: { xs: 2, lg: 4 }, display: 'flex', flexDirection: 'column', minHeight: '100vh', overflow: 'auto' }}>
-
-        {/* HEADER COM CAMPO DE PERFIL DINÂMICO */}
-        <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 6, gap: 2, flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
+      <Box
+        sx={{
+          flexGrow: 1,
+          minWidth: 0,
+          px: { xs: 2, sm: 3, lg: 8 },
+          py: { xs: 2, lg: 4 },
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100vh',
+          overflow: 'auto',
+        }}
+      >
+        {/* HEADER */}
+        <Box
+          sx={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mb: 6,
+            gap: 2,
+            flexWrap: { xs: 'wrap', md: 'nowrap' },
+          }}
+        >
           <Box sx={{ width: 48, display: { xs: 'none', lg: 'block' } }} />
 
-          {/* O BOX ABAIXO AGORA EXIBE O CARGO REAL DO USUÁRIO */}
-          <Box sx={{
-            px: { xs: 4, sm: 5, lg: 12 }, py: 2, borderRadius: '25px', bgcolor: 'white',
-            boxShadow: '0px 4px 15px rgba(0,0,0,0.05)', border: '1px solid #EEE', order: { xs: 2, md: 1 }, mx: { xs: 'auto', md: 0 }
-          }}>
-            <Typography sx={{
-              color: '#128654',
-              fontWeight: 'bold',
-              letterSpacing: 2,
-              textTransform: 'uppercase'
-            }}>
+          <Box
+            sx={{
+              px: { xs: 4, sm: 5, lg: 12 },
+              py: 2,
+              borderRadius: '25px',
+              bgcolor: 'white',
+              boxShadow: '0px 4px 15px rgba(0,0,0,0.05)',
+              border: '1px solid #EEE',
+              order: { xs: 2, md: 1 },
+              mx: { xs: 'auto', md: 0 },
+            }}
+          >
+            <Typography
+              sx={{
+                color: '#128654',
+                fontWeight: 'bold',
+                letterSpacing: 2,
+                textTransform: 'uppercase',
+              }}
+            >
               {perfilUsuario || formatarPerfil(user?.role)}
             </Typography>
           </Box>
 
-          <Stack direction="row" spacing={3} alignItems="center" sx={{ order: { xs: 1, md: 2 }, ml: { xs: 'auto', md: 0 } }}>
-            <Typography variant="h4" sx={{ color: '#128654', fontWeight: 'bold' }}>NuPreço</Typography>
-            <IconButton onClick={handleOpenNotif} sx={{ color: notificacoes.length > 0 ? '#d32f2f' : '#128654', zIndex: 2 }}>
+          <Stack
+            direction="row"
+            spacing={3}
+            alignItems="center"
+            sx={{
+              order: { xs: 1, md: 2 },
+              ml: { xs: 'auto', md: 0 },
+            }}
+          >
+            <Typography
+              variant="h4"
+              sx={{
+                color: '#128654',
+                fontWeight: 'bold',
+              }}
+            >
+              NuPreço
+            </Typography>
+
+            <IconButton
+              onClick={handleOpenNotif}
+              sx={{
+                color: notificacoes.length > 0 ? '#d32f2f' : '#128654',
+                zIndex: 2,
+              }}
+            >
               <Badge badgeContent={notificacoes.length} color="error">
                 <NotificationsNoneIcon sx={{ fontSize: '2.5rem' }} />
               </Badge>
@@ -150,23 +283,61 @@ const Inicio = ({
             anchorEl={anchorElNotif}
             open={Boolean(anchorElNotif)}
             onClose={handleCloseNotif}
-            PaperProps={{ sx: { width: 320, borderRadius: '15px', mt: 1.5, zIndex: 1500 } }}
+            PaperProps={{
+              sx: {
+                width: 320,
+                borderRadius: '15px',
+                mt: 1.5,
+                zIndex: 1500,
+              },
+            }}
           >
             <Box sx={{ p: 2, borderBottom: '1px solid #F0F0F0' }}>
-              <Typography sx={{ fontWeight: 'bold', color: '#d32f2f' }}>Atenção: Contas Em Aberto</Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+              <Typography
+                sx={{
+                  fontWeight: 'bold',
+                  color: '#d32f2f',
+                }}
+              >
+                Atenção: Contas Em Aberto
+              </Typography>
+
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'text.secondary',
+                  fontWeight: 700,
+                }}
+              >
                 Total a pagar: {formatarMoeda(totalAPagar)}
               </Typography>
             </Box>
+
             {notificacoes.length > 0 ? (
               notificacoes.map((conta, index) => {
                 const vencida = conta.status === 'VENCIDA';
 
                 return (
-                  <MenuItem key={conta.id || index} onClick={handleCloseNotif} sx={{ py: 1.5 }}>
+                  <MenuItem
+                    key={conta.id || index}
+                    onClick={handleCloseNotif}
+                    sx={{ py: 1.5 }}
+                  >
                     <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{conta.fornecedor || conta.nome}</Typography>
-                      <Typography variant="caption" sx={{ color: vencida ? '#d32f2f' : '#F57F17', fontWeight: 700 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{ fontWeight: 'bold' }}
+                      >
+                        {conta.fornecedor || conta.nome}
+                      </Typography>
+
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: vencida ? '#d32f2f' : '#F57F17',
+                          fontWeight: 700,
+                        }}
+                      >
                         {formatarMoeda(conta.valor)} • {vencida ? 'Conta vencida' : 'Conta válida até hoje'}
                       </Typography>
                     </Box>
@@ -174,42 +345,84 @@ const Inicio = ({
                 );
               })
             ) : (
-              <MenuItem onClick={handleCloseNotif}>Nenhuma conta vencendo hoje ou vencida</MenuItem>
+              <MenuItem onClick={handleCloseNotif}>
+                Nenhuma conta vencendo hoje ou vencida
+              </MenuItem>
             )}
           </Menu>
         </Box>
 
         {/* GRID CENTRAL */}
-        <Box sx={{
-          width: '100%', maxWidth: '1100px', margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: { xs: 'repeat(1, minmax(0, 1fr))', sm: 'repeat(2, minmax(0, 1fr))', md: 'repeat(3, minmax(0, 1fr))' },
-          gap: { xs: 3, md: 6 },
-          pb: 4,
-        }}>
-          {modulos.filter(item => item.text !== 'Início' && item.text !== 'Usuário').map((item, index) => (
-            <Card
-              key={index}
-              onClick={item.action}
-              sx={{
-                aspectRatio: { xs: 'auto', sm: '1.2 / 1' }, minHeight: { xs: 150, sm: 'auto' }, borderRadius: '25px', display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center', cursor: 'pointer', bgcolor: 'white',
-                border: '1px solid #F0F0F0', transition: '0.2s ease',
-                '&:hover': {
-                  transform: 'translateY(-5px)',
-                  boxShadow: '0px 15px 40px rgba(0,0,0,0.06)',
-                  bgcolor: item.text === 'Sair' ? '#fff5f5' : 'white'
-                }
-              }}
-            >
-              <Typography sx={{ color: item.text === 'Sair' ? '#d32f2f' : '#128654', fontWeight: 'bold', mb: 1 }}>
-                {item.text.toUpperCase()}
-              </Typography>
-              <Box sx={{ color: item.text === 'Sair' ? '#d32f2f' : '#128654', '& svg': { fontSize: { xs: '64px', md: '85px' } } }}>
-                {item.icon}
-              </Box>
-            </Card>
-          ))}
+        <Box
+          sx={{
+            width: '100%',
+            maxWidth: '1100px',
+            margin: '0 auto',
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: 'repeat(1, minmax(0, 1fr))',
+              sm: 'repeat(2, minmax(0, 1fr))',
+              md: 'repeat(3, minmax(0, 1fr))',
+            },
+            gap: { xs: 3, md: 6 },
+            pb: 4,
+          }}
+        >
+          {modulos
+            .filter(
+              (item) =>
+                item.text !== 'Início' &&
+                item.text !== 'Usuário' &&
+                item.text !== 'Etiqueta Digital'
+            )
+            .map((item, index) => (
+              <Card
+                key={index}
+                onClick={item.action}
+                sx={{
+                  aspectRatio: { xs: 'auto', sm: '1.2 / 1' },
+                  minHeight: { xs: 150, sm: 'auto' },
+                  borderRadius: '25px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  bgcolor: 'white',
+                  border: '1px solid #F0F0F0',
+                  transition: '0.2s ease',
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                    boxShadow: '0px 15px 40px rgba(0,0,0,0.06)',
+                    bgcolor: item.text === 'Sair' ? '#fff5f5' : 'white',
+                  },
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: item.text === 'Sair' ? '#d32f2f' : '#128654',
+                    fontWeight: 'bold',
+                    mb: 1,
+                  }}
+                >
+                  {item.text.toUpperCase()}
+                </Typography>
+
+                <Box
+                  sx={{
+                    color: item.text === 'Sair' ? '#d32f2f' : '#128654',
+                    '& svg': {
+                      fontSize: {
+                        xs: '64px',
+                        md: '85px',
+                      },
+                    },
+                  }}
+                >
+                  {item.icon}
+                </Box>
+              </Card>
+            ))}
         </Box>
       </Box>
     </Box>
@@ -217,3 +430,5 @@ const Inicio = ({
 };
 
 export default Inicio;
+
+

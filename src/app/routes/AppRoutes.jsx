@@ -2,15 +2,21 @@ import React from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 
+
+
 import PublicLayout from '../layouts/PublicLayout';
 import PrivateLayout from '../layouts/PrivateLayout';
 import PrivateRoute from './PrivateRoute';
 import PublicRoute from './PublicRoute';
 
 
+
+
 import BemVindo from '../../pages/public/BemVindo';
 import CadastroPage from '../../pages/public/Cadastro';
 import EntrarPage from '../../pages/public/Logar';
+
+
 
 
 import Inicio from '../../pages/private/inicio';
@@ -20,6 +26,9 @@ import Produto from '../../pages/private/Produto';
 import Contas from '../../pages/private/Contas';
 import Usuarios from '../../pages/private/Usuarios';
 import VendaConsulta from '../../pages/private/VendaConsulta';
+import EtiquetaDigital from '../../pages/private/EtiquetaDigital';
+
+
 
 
 const AppRoutes = () => {
@@ -28,11 +37,15 @@ const AppRoutes = () => {
       <Routes>
 
 
+
+
         {/* ✅ BEM-VINDO (SEM LAYOUT — CORREÇÃO PRINCIPAL) */}
         <Route
           path="/"
           element={<BemVindo />}
         />
+
+
 
 
         {/* 🔐 ROTAS PÚBLICAS (com layout normal) */}
@@ -51,6 +64,8 @@ const AppRoutes = () => {
         />
 
 
+
+
         <Route
           path="/cadastro"
           element={
@@ -61,9 +76,11 @@ const AppRoutes = () => {
               >
                 <CadastroPage />
               </PublicLayout>
-            </PublicRoute> 
+            </PublicRoute>
           }
         />
+
+
 
 
         {/* 🔒 ROTAS PRIVADAS */}
@@ -81,11 +98,16 @@ const AppRoutes = () => {
           <Route path="/contas" element={<Contas />} />
           <Route path="/usuarios" element={<Usuarios />} />
           <Route path="/vendas" element={<VendaConsulta />} />
+          <Route path="/etiqueta-digital" element={<EtiquetaDigital />} />
         </Route>
+
+
 
 
         {/* 🔁 fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
+
+
 
 
       </Routes>
@@ -94,4 +116,10 @@ const AppRoutes = () => {
 };
 
 
+
+
 export default AppRoutes;
+
+
+
+

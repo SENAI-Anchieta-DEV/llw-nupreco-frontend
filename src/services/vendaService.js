@@ -1,8 +1,45 @@
 import api from './api';
 import { unwrapApiData } from './apiResponse';
 
+
+const MOTIVOS_CANCELAMENTO_STORAGE_KEY = 'nupreco_motivos_cancelamento_vendas';
+
+
+const getMotivosCancelamentoRegistrados = () => {
+  try {
+    const motivosSalvos = localStorage.getItem(MOTIVOS_CANCELAMENTO_STORAGE_KEY);
+    return motivosSalvos ? JSON.parse(motivosSalvos) : {};
+  } catch (error) {
+    return {};
+  }
+};
+
+
+const registrarMotivoCancelamentoLocalmente = (id, motivoCancelamento) => {
+  if (!id || !motivoCancelamento) return;
+
+
+  try {
+    const motivosRegistrados = getMotivosCancelamentoRegistrados();
+    localStorage.setItem(
+      MOTIVOS_CANCELAMENTO_STORAGE_KEY,
+      JSON.stringify({
+        ...motivosRegistrados,
+        [id]: motivoCancelamento,
+      })
+    );
+  } catch (error) {
+    // Mantém o fluxo de cancelamento funcionando mesmo se o navegador bloquear o armazenamento local.
+  }
+};
+
+
 const normalizeVenda = (venda) => {
   if (!venda) return null;
+
+
+  const motivosRegistrados = getMotivosCancelamentoRegistrados();
+
 
   return {
     ...venda,
@@ -15,13 +52,16 @@ const normalizeVenda = (venda) => {
     total: Number(venda.total ?? 0),
     valorRecebido: Number(venda.valorRecebido ?? 0),
     troco: Number(venda.troco ?? 0),
+    motivoCancelamento: venda.motivoCancelamento || venda.motivo || venda.cancelamentoMotivo || motivosRegistrados[venda.id] || '',
   };
 };
+
 
 const normalizeVendas = (data) => {
   if (!Array.isArray(data)) return [];
   return data.map(normalizeVenda).filter(Boolean);
 };
+
 
 const vendaService = {
   async listar() {
@@ -29,10 +69,12 @@ const vendaService = {
     return normalizeVendas(unwrapApiData(response));
   },
 
+
   async buscarPorId(id) {
     const response = await api.get(`/vendas/${id}`);
     return normalizeVenda(unwrapApiData(response));
   },
+
 
   async vender(venda) {
     const response = await api.post('/vendas', {
@@ -43,13 +85,20 @@ const vendaService = {
       valorRecebido: Number(venda.valorRecebido),
     });
 
+
     return normalizeVenda(unwrapApiData(response));
   },
 
-  async cancelar(id) {
-    const response = await api.patch(`/vendas/${id}/cancelar`);
+
+  async cancelar(id, motivoCancelamento) {
+    const payload = motivoCancelamento ? { motivoCancelamento } : undefined;
+    const response = await api.patch(`/vendas/${id}/cancelar`, payload);
+    registrarMotivoCancelamentoLocalmente(id, motivoCancelamento);
     return normalizeVenda(unwrapApiData(response));
   },
 };
 
+
 export default vendaService;
+
+
