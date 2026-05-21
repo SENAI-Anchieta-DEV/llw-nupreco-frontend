@@ -17,7 +17,9 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
+
 import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
+
 
 // Ícones da identidade visual NuPreço
 import MenuIcon from '@mui/icons-material/Menu';
@@ -31,9 +33,12 @@ import CategoryIcon from '@mui/icons-material/CategoryOutlined';
 import LogoutIcon from '@mui/icons-material/ExitToAppOutlined';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 
+
 import useAuth from '../../hooks/useAuth';
+import ThemeToggleButton from '../../components/ThemeToggleButton';
 import contaService from '../../services/contaService';
 import { formatarMoeda, getNotificacoesContas, getTotalAPagar } from '../../utils/contasStatus';
+
 
 const formatarPerfil = (role) => {
   if (!role) return 'USUÁRIO';
@@ -41,6 +46,7 @@ const formatarPerfil = (role) => {
   if (role === 'FUNCIONARIO') return 'FUNCIONÁRIO';
   return String(role).replace('_', ' ');
 };
+
 
 const Inicio = ({
   onLogout,
@@ -50,13 +56,16 @@ const Inicio = ({
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
+
   const [menuAberto, setMenuAberto] = useState(false);
   const [anchorElNotif, setAnchorElNotif] = useState(null);
   const [contasApi, setContasApi] = useState([]);
 
+
   const toggleMenu = () => setMenuAberto(!menuAberto);
   const handleOpenNotif = (event) => setAnchorElNotif(event.currentTarget);
   const handleCloseNotif = () => setAnchorElNotif(null);
+
 
   useEffect(() => {
     const carregarContas = async () => {
@@ -68,15 +77,19 @@ const Inicio = ({
       }
     };
 
+
     carregarContas();
   }, []);
+
 
   const contasBase = useMemo(() => {
     return listaContasDoDia.length > 0 ? listaContasDoDia : contasApi;
   }, [listaContasDoDia, contasApi]);
 
+
   const notificacoes = useMemo(() => getNotificacoesContas(contasBase), [contasBase]);
   const totalAPagar = useMemo(() => getTotalAPagar(contasBase), [contasBase]);
+
 
   const sair = () => {
     if (onLogout) {
@@ -84,9 +97,11 @@ const Inicio = ({
       return;
     }
 
+
     logout();
     navigate('/entrar');
   };
+
 
   const modulos = [
     { text: 'Início', icon: <HomeIcon />, action: () => navigate('/inicio') },
@@ -100,17 +115,19 @@ const Inicio = ({
     { text: 'Sair', icon: <LogoutIcon />, action: sair },
   ];
 
+
   return (
     <Box
       sx={{
         display: 'flex',
-        bgcolor: '#F9F9F9',
+        bgcolor: 'background.default',
         minHeight: '100vh',
         width: '100%',
         overflow: 'hidden',
       }}
     >
       <CssBaseline />
+
 
       {/* MENU LATERAL */}
       <Drawer
@@ -137,6 +154,7 @@ const Inicio = ({
           NuPreço
         </Typography>
 
+
         <List>
           {modulos.map((item) => (
             <ListItem
@@ -157,6 +175,7 @@ const Inicio = ({
                 {item.icon}
               </ListItemIcon>
 
+
               <ListItemText
                 primary={item.text}
                 primaryTypographyProps={{
@@ -167,6 +186,7 @@ const Inicio = ({
           ))}
         </List>
       </Drawer>
+
 
       {/* SIDEBAR FIXA */}
       <Box
@@ -194,7 +214,14 @@ const Inicio = ({
             }}
           />
         </IconButton>
+
+
+        <Box sx={{ flexGrow: 1 }} />
+
+
+        <ThemeToggleButton variant="sidebar" />
       </Box>
+
 
       {/* ÁREA CENTRAL */}
       <Box
@@ -223,14 +250,15 @@ const Inicio = ({
         >
           <Box sx={{ width: 48, display: { xs: 'none', lg: 'block' } }} />
 
+
           <Box
             sx={{
               px: { xs: 4, sm: 5, lg: 12 },
               py: 2,
               borderRadius: '25px',
-              bgcolor: 'white',
-              boxShadow: '0px 4px 15px rgba(0,0,0,0.05)',
-              border: '1px solid #EEE',
+              bgcolor: 'background.paper',
+              boxShadow: (theme) => theme.palette.mode === 'dark' ? '0px 4px 18px rgba(0,0,0,0.35)' : '0px 4px 15px rgba(0,0,0,0.05)',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
               order: { xs: 2, md: 1 },
               mx: { xs: 'auto', md: 0 },
             }}
@@ -246,6 +274,7 @@ const Inicio = ({
               {perfilUsuario || formatarPerfil(user?.role)}
             </Typography>
           </Box>
+
 
           <Stack
             direction="row"
@@ -266,6 +295,7 @@ const Inicio = ({
               NuPreço
             </Typography>
 
+
             <IconButton
               onClick={handleOpenNotif}
               sx={{
@@ -278,6 +308,7 @@ const Inicio = ({
               </Badge>
             </IconButton>
           </Stack>
+
 
           <Menu
             anchorEl={anchorElNotif}
@@ -292,7 +323,7 @@ const Inicio = ({
               },
             }}
           >
-            <Box sx={{ p: 2, borderBottom: '1px solid #F0F0F0' }}>
+            <Box sx={{ p: 2, borderBottom: (theme) => `1px solid ${theme.palette.divider}` }}>
               <Typography
                 sx={{
                   fontWeight: 'bold',
@@ -301,6 +332,7 @@ const Inicio = ({
               >
                 Atenção: Contas Em Aberto
               </Typography>
+
 
               <Typography
                 variant="caption"
@@ -313,9 +345,11 @@ const Inicio = ({
               </Typography>
             </Box>
 
+
             {notificacoes.length > 0 ? (
               notificacoes.map((conta, index) => {
                 const vencida = conta.status === 'VENCIDA';
+
 
                 return (
                   <MenuItem
@@ -330,6 +364,7 @@ const Inicio = ({
                       >
                         {conta.fornecedor || conta.nome}
                       </Typography>
+
 
                       <Typography
                         variant="caption"
@@ -351,6 +386,7 @@ const Inicio = ({
             )}
           </Menu>
         </Box>
+
 
         {/* GRID CENTRAL */}
         <Box
@@ -388,13 +424,13 @@ const Inicio = ({
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  bgcolor: 'white',
-                  border: '1px solid #F0F0F0',
+                  bgcolor: 'background.paper',
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
                   transition: '0.2s ease',
                   '&:hover': {
                     transform: 'translateY(-5px)',
                     boxShadow: '0px 15px 40px rgba(0,0,0,0.06)',
-                    bgcolor: item.text === 'Sair' ? '#fff5f5' : 'white',
+                    bgcolor: (theme) => item.text === 'Sair' ? (theme.palette.mode === 'dark' ? 'rgba(198,40,40,0.14)' : '#fff5f5') : theme.palette.background.paper,
                   },
                 }}
               >
@@ -407,6 +443,7 @@ const Inicio = ({
                 >
                   {item.text.toUpperCase()}
                 </Typography>
+
 
                 <Box
                   sx={{
@@ -429,6 +466,12 @@ const Inicio = ({
   );
 };
 
+
 export default Inicio;
+
+
+
+
+
 
 

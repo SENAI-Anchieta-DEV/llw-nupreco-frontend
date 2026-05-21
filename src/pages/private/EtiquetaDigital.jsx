@@ -15,15 +15,21 @@ import {
 } from '@mui/material';
 
 
+
+
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SearchIcon from '@mui/icons-material/Search';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 
 
+
+
 import produtoService from '../../services/produtoService';
 import iotService from '../../services/iotService';
 import { getApiErrorMessage } from '../../services/apiResponse';
+
+
 
 
 const etiquetasDigitais = [
@@ -34,22 +40,30 @@ const etiquetasDigitais = [
 ];
 
 
+
+
 const normalizarTexto = (value) => String(value ?? '').trim().toLowerCase();
+
+
 
 
 const formatMoney = (value) => Number(value || 0).toFixed(2);
 
 
+
+
 const campoPadrao = {
   '& .MuiOutlinedInput-root': {
     borderRadius: '14px',
-    bgcolor: '#FFFFFF',
+    bgcolor: 'background.paper',
     fontWeight: 700,
   },
   '& .MuiInputLabel-root': {
     fontWeight: 800,
   },
 };
+
+
 
 
 const EtiquetaDigital = () => {
@@ -65,17 +79,25 @@ const EtiquetaDigital = () => {
   const [sucesso, setSucesso] = useState('');
 
 
+
+
   const produtosFiltrados = useMemo(() => {
     const termo = normalizarTexto(buscaProduto);
 
 
+
+
     if (!termo || produtoSelecionado) return [];
+
+
 
 
     return produtos
       .filter((produto) => {
         const codigo = normalizarTexto(produto.id);
         const nome = normalizarTexto(produto.nome);
+
+
 
 
         return codigo.startsWith(termo) || nome.startsWith(termo);
@@ -88,9 +110,13 @@ const EtiquetaDigital = () => {
   }, [buscaProduto, produtos, produtoSelecionado]);
 
 
+
+
   const carregarProdutos = async () => {
     setCarregando(true);
     setErro('');
+
+
 
 
     try {
@@ -104,9 +130,13 @@ const EtiquetaDigital = () => {
   };
 
 
+
+
   useEffect(() => {
     carregarProdutos();
   }, []);
+
+
 
 
   const limparSelecao = () => {
@@ -115,6 +145,8 @@ const EtiquetaDigital = () => {
     setDescricao('');
     setValorEtiqueta('');
   };
+
+
 
 
   const selecionarProduto = (produto) => {
@@ -127,9 +159,13 @@ const EtiquetaDigital = () => {
   };
 
 
+
+
   const confirmarAlteracao = async () => {
     setErro('');
     setSucesso('');
+
+
 
 
     if (!produtoSelecionado) {
@@ -138,10 +174,14 @@ const EtiquetaDigital = () => {
     }
 
 
+
+
     if (!descricao.trim()) {
       setErro('A descrição do produto é obrigatória.');
       return;
     }
+
+
 
 
     if (!etiquetaDigitalId) {
@@ -150,7 +190,11 @@ const EtiquetaDigital = () => {
     }
 
 
+
+
     const valorNumerico = Number(String(valorEtiqueta).replace(',', '.'));
+
+
 
 
     if (!Number.isFinite(valorNumerico) || valorNumerico <= 0) {
@@ -159,7 +203,11 @@ const EtiquetaDigital = () => {
     }
 
 
+
+
     setEnviando(true);
+
+
 
 
     try {
@@ -168,6 +216,8 @@ const EtiquetaDigital = () => {
         preco: valorNumerico,
         etiquetaDigitalId,
       });
+
+
 
 
       setSucesso(`Informações enviadas para a ${etiquetaDigitalId} com sucesso.`);
@@ -180,10 +230,12 @@ const EtiquetaDigital = () => {
   };
 
 
+
+
   return (
     <Box
       sx={{
-        bgcolor: '#F9F9F9',
+        bgcolor: 'background.default',
         height: '100%',
         maxHeight: '100vh',
         overflow: 'hidden',
@@ -203,6 +255,8 @@ const EtiquetaDigital = () => {
         </Box>
 
 
+
+
         <Button
           variant="outlined"
           startIcon={<RefreshIcon />}
@@ -220,8 +274,12 @@ const EtiquetaDigital = () => {
       </Stack>
 
 
+
+
       {erro && <Alert severity="error" sx={{ mb: 2, flexShrink: 0 }}>{erro}</Alert>}
       {sucesso && <Alert severity="success" sx={{ mb: 2, flexShrink: 0 }}>{sucesso}</Alert>}
+
+
 
 
       <Grid container spacing={3} sx={{ flex: 1, minHeight: 0 }}>
@@ -230,7 +288,7 @@ const EtiquetaDigital = () => {
             sx={{
               p: 3,
               borderRadius: '25px',
-              border: '1px solid #F0F0F0',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
               height: '100%',
               minHeight: 0,
               display: 'flex',
@@ -240,6 +298,8 @@ const EtiquetaDigital = () => {
             <Typography sx={{ color: '#128654', fontWeight: 900, mb: 2, flexShrink: 0 }}>
               Lista De Produtos
             </Typography>
+
+
 
 
             <TextField
@@ -265,16 +325,18 @@ const EtiquetaDigital = () => {
             />
 
 
+
+
             <Paper
               elevation={0}
               sx={{
                 borderRadius: '18px',
-                border: '1px solid #EEEEEE',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
                 flex: 1,
                 minHeight: 0,
                 overflowY: 'auto',
                 p: 1.2,
-                bgcolor: '#FFFFFF',
+                bgcolor: 'background.paper',
               }}
             >
               {carregando ? (
@@ -298,16 +360,16 @@ const EtiquetaDigital = () => {
                       sx={{
                         p: 1.4,
                         borderRadius: '14px',
-                        border: '1px solid #F0F0F0',
+                        border: (theme) => `1px solid ${theme.palette.divider}`,
                         cursor: 'pointer',
                         transition: '0.2s ease',
                         '&:hover': {
-                          bgcolor: '#F6FBF8',
+                          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.14)' : '#F6FBF8',
                           borderColor: '#128654',
                         },
                       }}
                     >
-                      <Typography sx={{ color: '#1B2635', fontWeight: 900, fontSize: '0.92rem' }}>
+                      <Typography sx={{ color: 'text.primary', fontWeight: 900, fontSize: '0.92rem' }}>
                         {produto.nome}
                       </Typography>
                       <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
@@ -325,17 +387,19 @@ const EtiquetaDigital = () => {
         </Grid>
 
 
+
+
         <Grid item xs={12} md={8} sx={{ minHeight: 0 }}>
           <Card
             sx={{
               p: { xs: 2.5, lg: 3.5 },
               borderRadius: '25px',
-              border: '1px solid #F0F0F0',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
               height: '100%',
               minHeight: 0,
               display: 'flex',
               flexDirection: 'column',
-              boxShadow: '0 10px 26px rgba(0,0,0,0.035)',
+              boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 10px 26px rgba(0,0,0,0.28)' : '0 10px 26px rgba(0,0,0,0.035)',
             }}
           >
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3, flexShrink: 0 }}>
@@ -344,7 +408,7 @@ const EtiquetaDigital = () => {
                   width: 46,
                   height: 46,
                   borderRadius: '16px',
-                  bgcolor: '#E8F5E9',
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.18)' : '#E8F5E9',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -363,6 +427,8 @@ const EtiquetaDigital = () => {
             </Stack>
 
 
+
+
             <Grid container spacing={2.5} sx={{ flexShrink: 0 }}>
               <Grid item xs={12} md={6}>
                 <TextField
@@ -374,6 +440,8 @@ const EtiquetaDigital = () => {
                   helperText="Preenchido automaticamente ao selecionar um produto."
                 />
               </Grid>
+
+
 
 
               <Grid item xs={12} md={3}>
@@ -390,6 +458,8 @@ const EtiquetaDigital = () => {
                   helperText="Opcional alterar antes de enviar."
                 />
               </Grid>
+
+
 
 
               <Grid item xs={12} md={3}>
@@ -412,19 +482,23 @@ const EtiquetaDigital = () => {
             </Grid>
 
 
+
+
             <Card
               sx={{
                 mt: 3,
                 p: 3,
                 borderRadius: '22px',
-                border: '1px solid #E8F5E9',
-                bgcolor: '#F6FBF8',
+                border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.35)' : '#E8F5E9'}`,
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.14)' : '#F6FBF8',
                 flexShrink: 0,
               }}
             >
               <Typography sx={{ color: '#128654', fontWeight: 900, mb: 1 }}>
                 Prévia Do Envio
               </Typography>
+
+
 
 
               <Grid container spacing={2}>
@@ -438,6 +512,8 @@ const EtiquetaDigital = () => {
                 </Grid>
 
 
+
+
                 <Grid item xs={12} md={4}>
                   <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 800 }}>
                     VALOR
@@ -446,6 +522,8 @@ const EtiquetaDigital = () => {
                     R$ {formatMoney(valorEtiqueta)}
                   </Typography>
                 </Grid>
+
+
 
 
                 <Grid item xs={12} md={4}>
@@ -460,7 +538,11 @@ const EtiquetaDigital = () => {
             </Card>
 
 
+
+
             <Box sx={{ flex: 1, minHeight: 0 }} />
+
+
 
 
             <Stack direction="row" justifyContent="flex-end" spacing={1.5} sx={{ mt: 3, flexShrink: 0 }}>
@@ -477,6 +559,8 @@ const EtiquetaDigital = () => {
               >
                 Limpar
               </Button>
+
+
 
 
               <Button
@@ -506,7 +590,7 @@ const EtiquetaDigital = () => {
 };
 
 
+
+
 export default EtiquetaDigital;
-
-
 

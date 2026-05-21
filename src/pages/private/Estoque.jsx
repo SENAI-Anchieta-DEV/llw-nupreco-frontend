@@ -21,19 +21,24 @@ import {
   Typography,
 } from '@mui/material';
 
+
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SearchIcon from '@mui/icons-material/Search';
 import SaveIcon from '@mui/icons-material/Save';
 
+
 import estoqueService from '../../services/estoqueService';
 import produtoService from '../../services/produtoService';
 import { getApiErrorMessage } from '../../services/apiResponse';
 
+
 const formatMoney = (value) => Number(value || 0).toFixed(2);
 
+
 const normalizarTexto = (value) => String(value ?? '').trim().toLowerCase();
+
 
 const Estoque = () => {
   const [produtos, setProdutos] = useState([]);
@@ -46,6 +51,7 @@ const Estoque = () => {
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
 
+
   const itensComProduto = useMemo(() => {
     return itens
       .map((item) => {
@@ -54,6 +60,7 @@ const Estoque = () => {
         const precoVenda = Number(produto?.precoVenda ?? 0);
         const lucroUnitario = precoVenda - custoProduto;
         const quantidade = Number(item.quantidade ?? 0);
+
 
         return {
           ...item,
@@ -73,15 +80,19 @@ const Estoque = () => {
       );
   }, [itens, produtos]);
 
+
   const produtosFiltradosPesquisa = useMemo(() => {
     const termo = normalizarTexto(buscaProduto);
 
+
     if (!termo || produtoSelecionado) return [];
+
 
     return produtos
       .filter((produto) => {
         const codigo = normalizarTexto(produto.id);
         const nome = normalizarTexto(produto.nome);
+
 
         return codigo.startsWith(termo) || nome.startsWith(termo);
       })
@@ -92,15 +103,18 @@ const Estoque = () => {
       );
   }, [buscaProduto, produtos, produtoSelecionado]);
 
+
   const carregarDados = async () => {
     setCarregando(true);
     setErro('');
+
 
     try {
       const [produtosApi, itensApi] = await Promise.all([
         produtoService.listar(),
         estoqueService.listarItens(),
       ]);
+
 
       setProdutos(produtosApi);
       setItens(itensApi);
@@ -111,9 +125,11 @@ const Estoque = () => {
     }
   };
 
+
   useEffect(() => {
     carregarDados();
   }, []);
+
 
   const limparPesquisa = () => {
     setBuscaProduto('');
@@ -121,8 +137,10 @@ const Estoque = () => {
     setQuantidadeEditada('');
   };
 
+
   const selecionarProduto = (produto) => {
     const itemEstoque = itens.find((item) => item.produtoId === produto.id);
+
 
     setErro('');
     setSucesso('');
@@ -131,23 +149,29 @@ const Estoque = () => {
     setBuscaProduto(`${produto.id} - ${produto.nome}`);
   };
 
+
   const buscarProduto = () => {
     setErro('');
     setSucesso('');
 
+
     const termo = normalizarTexto(buscaProduto);
+
 
     if (!termo) {
       setErro('Digite o código ou o nome do produto para pesquisar.');
       return;
     }
 
+
     const produtoEncontrado = produtos.find((produto) => {
       const codigo = normalizarTexto(produto.id);
       const nome = normalizarTexto(produto.nome);
 
+
       return codigo === termo || codigo.startsWith(termo) || nome.startsWith(termo);
     });
+
 
     if (!produtoEncontrado) {
       setProdutoSelecionado(null);
@@ -156,11 +180,14 @@ const Estoque = () => {
       return;
     }
 
+
     selecionarProduto(produtoEncontrado);
   };
 
+
   const selecionarParaEditar = (item) => {
     const produto = produtos.find((produtoItem) => produtoItem.id === item.produtoId);
+
 
     setErro('');
     setSucesso('');
@@ -176,39 +203,49 @@ const Estoque = () => {
     setQuantidadeEditada(String(item.quantidade));
   };
 
+
   const salvarQuantidade = async () => {
     setErro('');
     setSucesso('');
+
 
     if (!produtoSelecionado) {
       setErro('Pesquise ou selecione um produto antes de salvar.');
       return;
     }
 
+
     const novaQuantidade = Number(quantidadeEditada);
+
 
     if (!Number.isFinite(novaQuantidade) || novaQuantidade < 0) {
       setErro('Informe uma quantidade válida.');
       return;
     }
 
+
     setSalvando(true);
+
 
     try {
       const itemAtual = itens.find((item) => item.produtoId === produtoSelecionado.id);
       const quantidadeAtual = Number(itemAtual?.quantidade ?? 0);
       const diferenca = novaQuantidade - quantidadeAtual;
 
+
       if (diferenca > 0) {
         await estoqueService.adicionar(produtoSelecionado.id, diferenca);
       }
+
 
       if (diferenca < 0) {
         await estoqueService.remover(produtoSelecionado.id, Math.abs(diferenca));
       }
 
+
       setItens((prev) => {
         const semItemAtual = prev.filter((item) => item.produtoId !== produtoSelecionado.id);
+
 
         return [
           ...semItemAtual,
@@ -220,6 +257,7 @@ const Estoque = () => {
         ];
       });
 
+
       setSucesso('Quantidade do produto atualizada com sucesso.');
       limparPesquisa();
     } catch (error) {
@@ -229,19 +267,24 @@ const Estoque = () => {
     }
   };
 
+
   const excluirProduto = async (item) => {
     setErro('');
     setSucesso('');
 
+
     try {
       await produtoService.excluir(item.produtoId);
+
 
       setProdutos((prev) => prev.filter((produto) => produto.id !== item.produtoId));
       setItens((prev) => prev.filter((estoqueItem) => estoqueItem.produtoId !== item.produtoId));
 
+
       if (produtoSelecionado?.id === item.produtoId) {
         limparPesquisa();
       }
+
 
       setSucesso('Produto excluído com sucesso.');
     } catch (error) {
@@ -249,10 +292,11 @@ const Estoque = () => {
     }
   };
 
+
   return (
     <Box
       sx={{
-        bgcolor: '#F9F9F9',
+        bgcolor: 'background.default',
         height: '100%',
         maxHeight: '100vh',
         overflow: 'hidden',
@@ -271,6 +315,7 @@ const Estoque = () => {
           </Typography>
         </Box>
 
+
         <Button
           variant="outlined"
           startIcon={<RefreshIcon />}
@@ -281,15 +326,18 @@ const Estoque = () => {
         </Button>
       </Stack>
 
+
       {erro && <Alert severity="error" sx={{ mb: 2, flexShrink: 0 }}>{erro}</Alert>}
       {sucesso && <Alert severity="success" sx={{ mb: 2, flexShrink: 0 }}>{sucesso}</Alert>}
 
+
       <Grid container spacing={3} sx={{ flex: 1, minHeight: 0 }}>
         <Grid item xs={12} md={4} sx={{ minHeight: 0 }}>
-          <Card sx={{ p: 3, borderRadius: '25px', border: '1px solid #F0F0F0' }}>
+          <Card sx={{ p: 3, borderRadius: '25px', border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <Typography sx={{ color: '#128654', fontWeight: 800, mb: 2 }}>
               Pesquisar Produto
             </Typography>
+
 
             <Stack spacing={2}>
               <TextField
@@ -318,6 +366,7 @@ const Estoque = () => {
                 }}
               />
 
+
               <Button
                 fullWidth
                 variant="contained"
@@ -329,15 +378,18 @@ const Estoque = () => {
                 Pesquisar
               </Button>
 
+
               {buscaProduto && produtosFiltradosPesquisa.length > 0 && !produtoSelecionado && (
-                <Card sx={{ p: 1.5, borderRadius: '16px', border: '1px solid #E8F5E9', bgcolor: '#FFFFFF' }}>
+                <Card sx={{ p: 1.5, borderRadius: '16px', border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.35)' : '#E8F5E9'}`, bgcolor: 'background.paper' }}>
                   <Typography sx={{ color: '#128654', fontWeight: 800, mb: 1 }}>
                     Produtos Encontrados
                   </Typography>
 
+
                   <Stack spacing={1} sx={{ maxHeight: 220, overflowY: 'auto' }}>
                     {produtosFiltradosPesquisa.map((produto) => {
                       const itemEstoque = itens.find((item) => item.produtoId === produto.id);
+
 
                       return (
                         <Box
@@ -346,10 +398,10 @@ const Estoque = () => {
                           sx={{
                             p: 1.2,
                             borderRadius: '12px',
-                            border: '1px solid #F0F0F0',
+                            border: (theme) => `1px solid ${theme.palette.divider}`,
                             cursor: 'pointer',
                             '&:hover': {
-                              bgcolor: '#F6FBF8',
+                              bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.14)' : '#F6FBF8',
                               borderColor: '#128654',
                             },
                           }}
@@ -367,25 +419,30 @@ const Estoque = () => {
                 </Card>
               )}
 
+
               {buscaProduto && produtosFiltradosPesquisa.length === 0 && !produtoSelecionado && (
                 <Alert severity="info" sx={{ borderRadius: '12px' }}>
                   Nenhum produto encontrado para essa pesquisa.
                 </Alert>
               )}
 
+
               {produtoSelecionado && (
-                <Card sx={{ p: 2, borderRadius: '16px', border: '1px solid #E8F5E9', bgcolor: '#F6FBF8' }}>
+                <Card sx={{ p: 2, borderRadius: '16px', border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.35)' : '#E8F5E9'}`, bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.14)' : '#F6FBF8' }}>
                   <Typography sx={{ color: '#128654', fontWeight: 800 }}>
                     {produtoSelecionado.nome}
                   </Typography>
+
 
                   <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>
                     Código: {produtoSelecionado.id}
                   </Typography>
 
+
                   <Typography variant="body2" sx={{ fontWeight: 700, mb: 1 }}>
                     Preço De Venda: R$ {formatMoney(produtoSelecionado.precoVenda)}
                   </Typography>
+
 
                   <TextField
                     label="Quantidade Em Estoque"
@@ -395,6 +452,7 @@ const Estoque = () => {
                     fullWidth
                     sx={{ mt: 1 }}
                   />
+
 
                   <Stack direction="row" spacing={1.5} sx={{ mt: 2 }}>
                     <Button
@@ -407,6 +465,7 @@ const Estoque = () => {
                     >
                       {salvando ? 'Salvando...' : 'Salvar'}
                     </Button>
+
 
                     <Button
                       fullWidth
@@ -424,12 +483,13 @@ const Estoque = () => {
           </Card>
         </Grid>
 
+
         <Grid item xs={12} md={8} sx={{ minHeight: 0 }}>
           <Card
             sx={{
               p: 3,
               borderRadius: '25px',
-              border: '1px solid #F0F0F0',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
               height: '100%',
               minHeight: 0,
               display: 'flex',
@@ -439,6 +499,7 @@ const Estoque = () => {
             <Typography sx={{ color: '#128654', fontWeight: 800, mb: 2, flexShrink: 0 }}>
               Itens Em Estoque
             </Typography>
+
 
             {carregando ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -450,7 +511,7 @@ const Estoque = () => {
                 elevation={0}
                 sx={{
                   borderRadius: '15px',
-                  border: '1px solid #EEE',
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
                   flex: 1,
                   minHeight: 0,
                   overflowY: 'auto',
@@ -458,17 +519,18 @@ const Estoque = () => {
               >
                 <Table stickyHeader>
                   <TableHead>
-                    <TableRow sx={{ bgcolor: '#F6FBF8' }}>
-                      <TableCell sx={{ fontWeight: 800, bgcolor: '#F6FBF8' }}>Código</TableCell>
-                      <TableCell sx={{ fontWeight: 800, bgcolor: '#F6FBF8' }}>Produto</TableCell>
-                      <TableCell sx={{ fontWeight: 800, bgcolor: '#F6FBF8' }}>Quantidade</TableCell>
-                      <TableCell sx={{ fontWeight: 800, bgcolor: '#F6FBF8' }}>Custo Unitário</TableCell>
-                      <TableCell sx={{ fontWeight: 800, bgcolor: '#F6FBF8' }}>Preço Venda</TableCell>
-                      <TableCell sx={{ fontWeight: 800, bgcolor: '#F6FBF8' }}>Lucro Unitário</TableCell>
-                      <TableCell sx={{ fontWeight: 800, bgcolor: '#F6FBF8' }}>Lucro Total Estimado</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 800, bgcolor: '#F6FBF8' }}>Ações</TableCell>
+                    <TableRow sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.14)' : '#F6FBF8' }}>
+                      <TableCell sx={{ fontWeight: 800, bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.14)' : '#F6FBF8' }}>Código</TableCell>
+                      <TableCell sx={{ fontWeight: 800, bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.14)' : '#F6FBF8' }}>Produto</TableCell>
+                      <TableCell sx={{ fontWeight: 800, bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.14)' : '#F6FBF8' }}>Quantidade</TableCell>
+                      <TableCell sx={{ fontWeight: 800, bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.14)' : '#F6FBF8' }}>Custo Unitário</TableCell>
+                      <TableCell sx={{ fontWeight: 800, bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.14)' : '#F6FBF8' }}>Preço Venda</TableCell>
+                      <TableCell sx={{ fontWeight: 800, bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.14)' : '#F6FBF8' }}>Lucro Unitário</TableCell>
+                      <TableCell sx={{ fontWeight: 800, bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.14)' : '#F6FBF8' }}>Lucro Total Estimado</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 800, bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.14)' : '#F6FBF8' }}>Ações</TableCell>
                     </TableRow>
                   </TableHead>
+
 
                   <TableBody>
                     {itensComProduto.length === 0 ? (
@@ -494,6 +556,7 @@ const Estoque = () => {
                               </IconButton>
                             </Tooltip>
 
+
                             <Tooltip title="Excluir Produto">
                               <IconButton onClick={() => excluirProduto(item)}>
                                 <DeleteOutlineIcon sx={{ color: '#C62828' }} />
@@ -514,6 +577,12 @@ const Estoque = () => {
   );
 };
 
+
 export default Estoque;
+
+
+
+
+
 
 

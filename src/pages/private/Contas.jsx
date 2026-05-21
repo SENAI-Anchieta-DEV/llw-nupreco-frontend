@@ -27,6 +27,7 @@ import EditIcon from '@mui/icons-material/EditOutlined';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SaveIcon from '@mui/icons-material/Save';
 
+
 import contaService from '../../services/contaService';
 import { getApiErrorMessage } from '../../services/apiResponse';
 import {
@@ -37,6 +38,7 @@ import {
   normalizeContaComStatus,
 } from '../../utils/contasStatus';
 
+
 const initialForm = {
   id: null,
   nome: '',
@@ -45,11 +47,13 @@ const initialForm = {
   dataVencimento: '',
 };
 
+
 const statusColors = {
   PENDENTE: { bg: '#FFF8E1', color: '#F57F17', label: 'Pendente' },
   PAGA: { bg: '#E8F5E9', color: '#2E7D32', label: 'Paga' },
   VENCIDA: { bg: '#FFEBEE', color: '#C62828', label: 'Vencida' },
 };
+
 
 const Contas = () => {
   const [contas, setContas] = useState([]);
@@ -60,21 +64,26 @@ const Contas = () => {
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
 
+
   const contasComStatus = useMemo(() => {
     return contas.map((conta) => normalizeContaComStatus(conta)).filter(Boolean);
   }, [contas]);
+
 
   const contasFiltradas = useMemo(() => {
     if (filtroStatus === 'TODAS') return contasComStatus;
     return contasComStatus.filter((conta) => conta.status === filtroStatus);
   }, [contasComStatus, filtroStatus]);
 
+
   const contasAPagar = useMemo(() => getContasAPagar(contasComStatus), [contasComStatus]);
   const totalAPagar = useMemo(() => getTotalAPagar(contasComStatus), [contasComStatus]);
+
 
   const carregarContas = async () => {
     setCarregando(true);
     setErro('');
+
 
     try {
       const data = await contaService.listar();
@@ -86,18 +95,22 @@ const Contas = () => {
     }
   };
 
+
   useEffect(() => {
     carregarContas();
   }, []);
+
 
   const alterarCampo = (event) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+
   const limparCampos = () => {
     setForm(initialForm);
   };
+
 
   const editarConta = (conta) => {
     setForm({
@@ -109,21 +122,26 @@ const Contas = () => {
     });
   };
 
+
   const salvarConta = async () => {
     setErro('');
     setSucesso('');
+
 
     if (!form.nome || !form.descricao || !form.valor || !form.dataVencimento) {
       setErro('Preencha nome, descrição, valor e data de vencimento.');
       return;
     }
 
+
     if (Number(form.valor) <= 0) {
       setErro('O valor da conta deve ser maior que zero.');
       return;
     }
 
+
     setSalvando(true);
+
 
     try {
       await contaService.salvar(form);
@@ -137,9 +155,11 @@ const Contas = () => {
     }
   };
 
+
   const alterarStatus = async (conta, status) => {
     setErro('');
     setSucesso('');
+
 
     try {
       await contaService.atualizarStatus(conta.id, status);
@@ -150,13 +170,16 @@ const Contas = () => {
     }
   };
 
+
   const alternarContaPaga = async (conta) => {
     await alterarStatus(conta, conta.status === 'PAGA' ? 'PENDENTE' : 'PAGA');
   };
 
+
   const excluirConta = async (conta) => {
     setErro('');
     setSucesso('');
+
 
     try {
       await contaService.excluir(conta.id);
@@ -167,8 +190,9 @@ const Contas = () => {
     }
   };
 
+
   return (
-    <Box sx={{ bgcolor: '#F9F9F9', minHeight: '100%', p: { xs: 3, lg: 4 } }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100%', p: { xs: 3, lg: 4 } }}>
       <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
         <Box>
           <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
@@ -178,6 +202,7 @@ const Contas = () => {
             Contas
           </Typography>
         </Box>
+
 
         <Button
           variant="outlined"
@@ -189,7 +214,8 @@ const Contas = () => {
         </Button>
       </Stack>
 
-      <Card sx={{ p: 3, borderRadius: '25px', border: '1px solid #F0F0F0', mb: 3 }}>
+
+      <Card sx={{ p: 3, borderRadius: '25px', border: (theme) => `1px solid ${theme.palette.divider}`, mb: 3 }}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'stretch', md: 'center' }} justifyContent="space-between">
           <Box>
             <Typography sx={{ color: '#128654', fontWeight: 800 }}>
@@ -199,6 +225,7 @@ const Contas = () => {
               Soma das contas pendentes e vencidas. Contas marcadas como pagas são removidas deste total.
             </Typography>
           </Box>
+
 
           <Box sx={{ textAlign: { xs: 'left', md: 'right' } }}>
             <Typography variant="h4" sx={{ color: '#128654', fontWeight: 800 }}>
@@ -211,18 +238,21 @@ const Contas = () => {
         </Stack>
       </Card>
 
+
       {erro && <Alert severity="error" sx={{ mb: 2 }}>{erro}</Alert>}
       {sucesso && <Alert severity="success" sx={{ mb: 2 }}>{sucesso}</Alert>}
 
+
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>
-          <Card sx={{ p: 3, borderRadius: '25px', border: '1px solid #F0F0F0' }}>
+          <Card sx={{ p: 3, borderRadius: '25px', border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
               <AddCircleOutlineIcon sx={{ color: '#128654' }} />
               <Typography sx={{ color: '#128654', fontWeight: 800 }}>
                 {form.id ? 'Editar Conta' : 'Nova Conta'}
               </Typography>
             </Stack>
+
 
             <Stack spacing={2}>
               <TextField label="Nome" name="nome" value={form.nome} onChange={alterarCampo} fullWidth />
@@ -238,9 +268,11 @@ const Contas = () => {
                 InputLabelProps={{ shrink: true }}
               />
 
+
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                 A conta permanece válida durante todo o dia do vencimento e só passa a vencida às 00:00 do dia seguinte.
               </Typography>
+
 
               <Button
                 variant="contained"
@@ -252,6 +284,7 @@ const Contas = () => {
                 {salvando ? 'Salvando...' : 'Salvar Conta'}
               </Button>
 
+
               {form.id && (
                 <Button onClick={limparCampos} sx={{ color: '#128654', textTransform: 'none', fontWeight: 700 }}>
                   Nova Conta
@@ -261,12 +294,14 @@ const Contas = () => {
           </Card>
         </Grid>
 
+
         <Grid item xs={12} md={8}>
-          <Card sx={{ p: 3, borderRadius: '25px', border: '1px solid #F0F0F0' }}>
+          <Card sx={{ p: 3, borderRadius: '25px', border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} spacing={2} sx={{ mb: 2 }}>
               <Typography sx={{ color: '#128654', fontWeight: 800 }}>
                 Contas Cadastradas
               </Typography>
+
 
               <TextField select size="small" label="Status" value={filtroStatus} onChange={(event) => setFiltroStatus(event.target.value)} sx={{ minWidth: 180 }}>
                 <MenuItem value="TODAS">Todas</MenuItem>
@@ -276,15 +311,16 @@ const Contas = () => {
               </TextField>
             </Stack>
 
+
             {carregando ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
                 <CircularProgress sx={{ color: '#128654' }} />
               </Box>
             ) : (
-              <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '15px', border: '1px solid #EEE', overflowX: 'auto' }}>
+              <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '15px', border: (theme) => `1px solid ${theme.palette.divider}`, overflowX: 'auto' }}>
                 <Table>
                   <TableHead>
-                    <TableRow sx={{ bgcolor: '#F6FBF8' }}>
+                    <TableRow sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.14)' : '#F6FBF8' }}>
                       <TableCell sx={{ fontWeight: 800 }}>Nome</TableCell>
                       <TableCell sx={{ fontWeight: 800 }}>Vencimento</TableCell>
                       <TableCell sx={{ fontWeight: 800 }}>Valor</TableCell>
@@ -301,6 +337,7 @@ const Contas = () => {
                     ) : (
                       contasFiltradas.map((conta) => {
                         const statusColor = statusColors[conta.status] || statusColors.PENDENTE;
+
 
                         return (
                           <TableRow key={conta.id} hover>
@@ -351,5 +388,6 @@ const Contas = () => {
     </Box>
   );
 };
+
 
 export default Contas;

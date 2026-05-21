@@ -24,10 +24,14 @@ import {
 } from '@mui/material';
 
 
+
+
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import DeleteIcon from '@mui/icons-material/DeleteOutline';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCartOutlined';
+
+
 
 
 import useAuth from '../../hooks/useAuth';
@@ -37,23 +41,33 @@ import vendaService from '../../services/vendaService';
 import { getApiErrorMessage } from '../../services/apiResponse';
 
 
+
+
 const normalizarTexto = (valor) => String(valor ?? '').trim().toLowerCase();
+
+
 
 
 const obterCodigoProduto = (produto) => String(produto?.cod ?? produto?.id ?? produto?.produtoId ?? '').trim();
 
 
+
+
 const obterNomeProduto = (produto) => produto?.desc ?? produto?.nome ?? produto?.nomeProduto ?? 'Produto Sem Nome';
 
 
+
+
 const obterPrecoProduto = (produto) => Number(produto?.preco ?? produto?.precoVenda ?? produto?.valorVenda ?? produto?.custoProduto ?? 0);
+
+
 
 
 const campoPadrao = {
   '& .MuiOutlinedInput-root': {
     borderRadius: '11px',
     height: 48,
-    bgcolor: 'white',
+    bgcolor: 'background.paper',
     fontSize: '0.9rem',
   },
   '& .MuiInputLabel-root': {
@@ -64,8 +78,12 @@ const campoPadrao = {
 };
 
 
+
+
 const PdvRapido = () => {
   const { user } = useAuth();
+
+
 
 
   const [vendaAtiva, setVendaAtiva] = useState(false);
@@ -83,7 +101,11 @@ const PdvRapido = () => {
   const [mensagem, setMensagem] = useState({ aberta: false, texto: '', tipo: 'info' });
 
 
+
+
   const nomeVendedor = user?.nome ?? user?.name ?? user?.usuario ?? 'Vendedor';
+
+
 
 
   const abrirMensagem = (texto, tipo = 'info') => {
@@ -91,9 +113,13 @@ const PdvRapido = () => {
   };
 
 
+
+
   const fecharMensagem = () => {
     setMensagem((prev) => ({ ...prev, aberta: false }));
   };
+
+
 
 
   const estoque = useMemo(() => {
@@ -103,6 +129,8 @@ const PdvRapido = () => {
         const codigoEstoque = String(item?.produtoId ?? item?.cod ?? item?.id ?? '').trim();
         return codigoEstoque === codigoProduto;
       });
+
+
 
 
       return {
@@ -116,8 +144,12 @@ const PdvRapido = () => {
   }, [produtos, itensEstoque]);
 
 
+
+
   const produtosFiltradosModal = useMemo(() => {
     const termo = normalizarTexto(buscaModal);
+
+
 
 
     const produtosFiltrados = termo
@@ -129,6 +161,8 @@ const PdvRapido = () => {
       : estoque;
 
 
+
+
     return [...produtosFiltrados].sort((produtoA, produtoB) =>
       String(produtoA.desc ?? '').localeCompare(String(produtoB.desc ?? ''), 'pt-BR', {
         sensitivity: 'base',
@@ -138,8 +172,12 @@ const PdvRapido = () => {
   }, [buscaModal, estoque]);
 
 
+
+
   const carregarDados = useCallback(async () => {
     setCarregando(true);
+
+
 
 
     try {
@@ -147,6 +185,8 @@ const PdvRapido = () => {
         produtoService.listar(),
         estoqueService.listarItens(),
       ]);
+
+
 
 
       setProdutos(produtosApi);
@@ -159,9 +199,13 @@ const PdvRapido = () => {
   }, []);
 
 
+
+
   useEffect(() => {
     carregarDados();
   }, [carregarDados]);
+
+
 
 
   const iniciarNovaVenda = useCallback(() => {
@@ -173,8 +217,12 @@ const PdvRapido = () => {
   }, []);
 
 
+
+
   const adicionarItem = useCallback(() => {
     const codigoDigitado = String(codigo || '').trim();
+
+
 
 
     if (!codigoDigitado) {
@@ -183,7 +231,11 @@ const PdvRapido = () => {
     }
 
 
+
+
     const encontrado = estoque.find((p) => String(p.cod).trim() === codigoDigitado);
+
+
 
 
     if (!encontrado) {
@@ -192,7 +244,11 @@ const PdvRapido = () => {
     }
 
 
+
+
     const qtdSolicitada = parseInt(quantidade, 10);
+
+
 
 
     if (!Number.isFinite(qtdSolicitada) || qtdSolicitada <= 0) {
@@ -201,15 +257,21 @@ const PdvRapido = () => {
     }
 
 
+
+
     const qtdJaNoCarrinho = carrinho
       .filter((item) => item.cod === encontrado.cod)
       .reduce((soma, item) => soma + Number(item.qtd), 0);
+
+
 
 
     if (Number(encontrado.qtd) < qtdSolicitada + qtdJaNoCarrinho) {
       abrirMensagem(`Estoque insuficiente. Disponível: ${Number(encontrado.qtd)} unidade(s) de ${encontrado.desc}.`, 'warning');
       return;
     }
+
+
 
 
     const precoUnitario = Number(encontrado.preco || 0);
@@ -226,6 +288,8 @@ const PdvRapido = () => {
     };
 
 
+
+
     setCarrinho((prev) => [...prev, novoItem]);
     setCodigo('');
     setQuantidade(1);
@@ -233,9 +297,13 @@ const PdvRapido = () => {
   }, [codigo, quantidade, estoque, carrinho]);
 
 
+
+
   const removerItem = (id) => {
     setCarrinho((prev) => prev.filter((item) => item.id !== id));
   };
+
+
 
 
   const abrirModalBusca = useCallback(() => {
@@ -245,14 +313,20 @@ const PdvRapido = () => {
   }, [vendaAtiva]);
 
 
+
+
   const selecionarProdutoModal = (produto) => {
     setCodigo(produto.cod);
     setOpenModal(false);
   };
 
 
+
+
   const buscarProdutoModalPorCodigo = () => {
     const codigoBusca = String(buscaModal || '').trim();
+
+
 
 
     if (!codigoBusca) {
@@ -261,7 +335,11 @@ const PdvRapido = () => {
     }
 
 
+
+
     const encontrado = estoque.find((produto) => String(produto.cod).trim() === codigoBusca);
+
+
 
 
     if (!encontrado) {
@@ -270,8 +348,12 @@ const PdvRapido = () => {
     }
 
 
+
+
     selecionarProdutoModal(encontrado);
   };
+
+
 
 
   useEffect(() => {
@@ -282,10 +364,14 @@ const PdvRapido = () => {
       }
 
 
+
+
       if (e.key === 'F3' && vendaAtiva) {
         e.preventDefault();
         abrirModalBusca();
       }
+
+
 
 
       if (e.key === 'Enter' && codigo && vendaAtiva && !openModal) {
@@ -295,13 +381,19 @@ const PdvRapido = () => {
     };
 
 
+
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [vendaAtiva, codigo, adicionarItem, abrirModalBusca, openModal, iniciarNovaVenda]);
 
 
+
+
   const totalVenda = carrinho.reduce((acc, item) => acc + Number(item.subtotal), 0);
   const troco = Number(valorPago) > totalVenda ? Number(valorPago) - totalVenda : 0;
+
+
 
 
   const finalizarOperacao = async (status) => {
@@ -316,10 +408,14 @@ const PdvRapido = () => {
     }
 
 
+
+
     if (carrinho.length === 0) {
       abrirMensagem('Adicione pelo menos um produto antes de finalizar a venda.', 'warning');
       return;
     }
+
+
 
 
     if (Number(valorPago || 0) < totalVenda) {
@@ -328,7 +424,11 @@ const PdvRapido = () => {
     }
 
 
+
+
     setProcessando(true);
+
+
 
 
     try {
@@ -336,6 +436,8 @@ const PdvRapido = () => {
         itens: carrinho,
         valorRecebido: valorPago,
       });
+
+
 
 
       setVendaAtiva(false);
@@ -353,9 +455,13 @@ const PdvRapido = () => {
   };
 
 
+
+
   return (
     <Box sx={{ bgcolor: '#F7F7F7', height: '100vh', width: '100%', overflow: 'hidden' }}>
       <CssBaseline />
+
+
 
 
       <Box sx={{ height: '100%', px: { xs: 2.5, md: 3.5, lg: 4.5 }, py: { xs: 2.2, md: 2.8, lg: 3 }, display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -364,12 +470,14 @@ const PdvRapido = () => {
             <Typography variant="h4" sx={{ color: '#168A58', fontWeight: 900, fontSize: { xs: '1.7rem', lg: '2.15rem' }, lineHeight: 1 }}>
               PDV RÁPIDO
             </Typography>
-            <Typography variant="caption" sx={{ color: '#333', fontWeight: 900, fontSize: '0.65rem' }}>
+            <Typography variant="caption" sx={{ color: 'text.primary', fontWeight: 900, fontSize: '0.65rem' }}>
               VENDEDOR: {String(nomeVendedor).toUpperCase()}
             </Typography>
           </Box>
           <ShoppingCartIcon sx={{ color: '#EFEFEF', fontSize: { xs: '2rem', lg: '2.45rem' }, mr: 1 }} />
         </Stack>
+
+
 
 
         <Box sx={{ display: 'flex', gap: 2 }}>
@@ -392,6 +500,8 @@ const PdvRapido = () => {
           </Card>
 
 
+
+
           <Card
             onClick={() => finalizarOperacao('CANCELADA')}
             sx={{
@@ -402,7 +512,7 @@ const PdvRapido = () => {
               borderRadius: '15px',
               textAlign: 'center',
               cursor: 'pointer',
-              border: '1px solid #EFEFEF',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
               boxShadow: '0px 3px 10px rgba(0,0,0,0.045)',
             }}
           >
@@ -412,17 +522,19 @@ const PdvRapido = () => {
         </Box>
 
 
+
+
         <Grid
           container
           spacing={2}
           sx={{
             opacity: vendaAtiva ? 1 : 0.36,
             pointerEvents: vendaAtiva ? 'auto' : 'none',
-            bgcolor: 'white',
+            bgcolor: 'background.paper',
             px: 2,
             py: 1.6,
             borderRadius: '18px',
-            border: '1px solid #EFEFEF',
+            border: (theme) => `1px solid ${theme.palette.divider}`,
             boxShadow: '0px 2px 8px rgba(0,0,0,0.025)',
           }}
           alignItems="center"
@@ -441,7 +553,7 @@ const PdvRapido = () => {
             />
           </Grid>
           <Grid item xs={12} md={4} lg={3.2}>
-            <Typography variant="body2" sx={{ color: '#777', fontSize: '0.8rem', lineHeight: 1.35, fontWeight: 700 }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8rem', lineHeight: 1.35, fontWeight: 700 }}>
               DICA: Digite o código e aperte <strong>ENTER</strong>.<br />Use <strong>F3</strong> para buscar no estoque.
             </Typography>
           </Grid>
@@ -468,16 +580,18 @@ const PdvRapido = () => {
         </Grid>
 
 
-        <TableContainer component={Paper} sx={{ flexGrow: 1, minHeight: 0, borderRadius: '18px', boxShadow: 'none', border: '1px solid #EAEAEA', overflowY: 'auto', bgcolor: 'white' }}>
+
+
+        <TableContainer component={Paper} sx={{ flexGrow: 1, minHeight: 0, borderRadius: '18px', boxShadow: 'none', border: (theme) => `1px solid ${theme.palette.divider}`, overflowY: 'auto', bgcolor: 'background.paper' }}>
           <Table stickyHeader size="small">
             <TableHead>
               <TableRow>
-                <TableCell sx={{ bgcolor: 'white', color: '#1B2635', fontWeight: 900, fontSize: '0.74rem', py: 1.45, borderBottom: '1px solid #EAEAEA' }}>#</TableCell>
-                <TableCell sx={{ bgcolor: 'white', color: '#1B2635', fontWeight: 900, fontSize: '0.74rem', py: 1.45, borderBottom: '1px solid #EAEAEA' }}>DESCRIÇÃO</TableCell>
-                <TableCell sx={{ bgcolor: 'white', color: '#1B2635', fontWeight: 900, fontSize: '0.74rem', py: 1.45, borderBottom: '1px solid #EAEAEA' }} align="center">QTD</TableCell>
-                <TableCell sx={{ bgcolor: 'white', color: '#1B2635', fontWeight: 900, fontSize: '0.74rem', py: 1.45, borderBottom: '1px solid #EAEAEA' }} align="right">UNITÁRIO</TableCell>
-                <TableCell sx={{ bgcolor: 'white', color: '#168A58', fontWeight: 900, fontSize: '0.74rem', py: 1.45, borderBottom: '1px solid #EAEAEA' }} align="right">SUBTOTAL</TableCell>
-                <TableCell sx={{ bgcolor: 'white', color: '#1B2635', fontWeight: 900, fontSize: '0.74rem', py: 1.45, borderBottom: '1px solid #EAEAEA' }} align="center">REMOVER</TableCell>
+                <TableCell sx={{ bgcolor: 'background.paper', color: 'text.primary', fontWeight: 900, fontSize: '0.74rem', py: 1.45, borderBottom: (theme) => `1px solid ${theme.palette.divider}` }}>#</TableCell>
+                <TableCell sx={{ bgcolor: 'background.paper', color: 'text.primary', fontWeight: 900, fontSize: '0.74rem', py: 1.45, borderBottom: (theme) => `1px solid ${theme.palette.divider}` }}>DESCRIÇÃO</TableCell>
+                <TableCell sx={{ bgcolor: 'background.paper', color: 'text.primary', fontWeight: 900, fontSize: '0.74rem', py: 1.45, borderBottom: (theme) => `1px solid ${theme.palette.divider}` }} align="center">QTD</TableCell>
+                <TableCell sx={{ bgcolor: 'background.paper', color: 'text.primary', fontWeight: 900, fontSize: '0.74rem', py: 1.45, borderBottom: (theme) => `1px solid ${theme.palette.divider}` }} align="right">UNITÁRIO</TableCell>
+                <TableCell sx={{ bgcolor: 'background.paper', color: '#168A58', fontWeight: 900, fontSize: '0.74rem', py: 1.45, borderBottom: (theme) => `1px solid ${theme.palette.divider}` }} align="right">SUBTOTAL</TableCell>
+                <TableCell sx={{ bgcolor: 'background.paper', color: 'text.primary', fontWeight: 900, fontSize: '0.74rem', py: 1.45, borderBottom: (theme) => `1px solid ${theme.palette.divider}` }} align="center">REMOVER</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -489,7 +603,7 @@ const PdvRapido = () => {
                 </TableRow>
               ) : carrinho.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 6, color: '#333', fontStyle: 'italic', fontSize: '0.78rem' }}>
+                  <TableCell colSpan={6} align="center" sx={{ py: 6, color: 'text.primary', fontStyle: 'italic', fontSize: '0.78rem' }}>
                     Nenhum produto no carrinho. Inicie uma venda!
                   </TableCell>
                 </TableRow>
@@ -514,7 +628,9 @@ const PdvRapido = () => {
         </TableContainer>
 
 
-        <Box sx={{ bgcolor: 'white', p: 2, borderRadius: '18px', border: '1px solid #EAEAEA', boxShadow: '0px -3px 10px rgba(0,0,0,0.02)' }}>
+
+
+        <Box sx={{ bgcolor: 'background.paper', p: 2, borderRadius: '18px', border: (theme) => `1px solid ${theme.palette.divider}`, boxShadow: '0px -3px 10px rgba(0,0,0,0.02)' }}>
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12} md={2.2}>
               <Typography variant="caption" sx={{ fontWeight: 900, color: '#168A58', fontSize: '0.72rem', display: 'block', lineHeight: 1 }}>TOTAL DA COMPRA</Typography>
@@ -532,9 +648,11 @@ const PdvRapido = () => {
             </Grid>
             <Grid item xs={12} md={2.1}>
               <Typography variant="caption" sx={{ fontWeight: 900, color: '#C62828', fontSize: '0.72rem', display: 'block', lineHeight: 1 }}>TROCO A DEVOLVER</Typography>
-              <Typography variant="h5" sx={{ fontWeight: 900, color: '#1B2635', fontSize: { xs: '1.55rem', lg: '1.8rem' } }}>R$ {troco.toFixed(2)}</Typography>
+              <Typography variant="h5" sx={{ fontWeight: 900, color: 'text.primary', fontSize: { xs: '1.55rem', lg: '1.8rem' } }}>R$ {troco.toFixed(2)}</Typography>
             </Grid>
           </Grid>
+
+
 
 
           <Button
@@ -560,9 +678,13 @@ const PdvRapido = () => {
       </Box>
 
 
+
+
       <Modal open={openModal} onClose={() => setOpenModal(false)}>
-        <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: { xs: '92vw', sm: 560 }, bgcolor: 'white', borderRadius: '18px', p: 3, maxHeight: '80vh', overflowY: 'auto', boxShadow: 24 }}>
+        <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: { xs: '92vw', sm: 560 }, bgcolor: 'background.paper', borderRadius: '18px', p: 3, maxHeight: '80vh', overflowY: 'auto', boxShadow: 24 }}>
           <Typography variant="h6" sx={{ color: '#168A58', mb: 2, fontWeight: 900, textAlign: 'center', fontSize: '1.1rem' }}>PESQUISAR PRODUTO PELO CÓDIGO</Typography>
+
+
 
 
           <Grid container spacing={1.5} sx={{ mb: 2 }}>
@@ -591,6 +713,8 @@ const PdvRapido = () => {
           </Grid>
 
 
+
+
           {produtosFiltradosModal.length === 0 ? (
             <Alert severity="error" sx={{ borderRadius: '10px' }}>Produto não encontrado. A venda atual foi mantida.</Alert>
           ) : (
@@ -602,7 +726,7 @@ const PdvRapido = () => {
                   p: 1.5,
                   mb: 1,
                   borderRadius: '12px',
-                  border: '1px solid #F0F0F0',
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
                   cursor: 'pointer',
                   '&:hover': { bgcolor: '#F1F8F5', borderColor: '#168A58' },
                   display: 'flex',
@@ -620,9 +744,13 @@ const PdvRapido = () => {
           )}
 
 
-          <Button onClick={() => setOpenModal(false)} fullWidth sx={{ mt: 1.5, color: '#777', fontWeight: 800 }}>FECHAR</Button>
+
+
+          <Button onClick={() => setOpenModal(false)} fullWidth sx={{ mt: 1.5, color: 'text.secondary', fontWeight: 800 }}>FECHAR</Button>
         </Box>
       </Modal>
+
+
 
 
       <Snackbar open={mensagem.aberta} autoHideDuration={3500} onClose={fecharMensagem} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
@@ -635,7 +763,16 @@ const PdvRapido = () => {
 };
 
 
+
+
 export default PdvRapido;
+
+
+
+
+
+
+
 
 
 

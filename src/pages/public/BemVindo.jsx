@@ -11,11 +11,15 @@ import {
   CardContent,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import ThemeToggleButton from "../../components/ThemeToggleButton";
+
 
 export default function BemVindo() {
   const navigate = useNavigate();
 
+
   const verde = "#128654";
+
 
   const cardsProblema = [
     {
@@ -39,6 +43,7 @@ export default function BemVindo() {
         "Erros de precificação e atrasos impactam diretamente no lucro.",
     },
   ];
+
 
   const equipe = [
     {
@@ -64,13 +69,15 @@ export default function BemVindo() {
     },
   ];
 
+
   return (
-    <Box sx={{ bgcolor: "#F8F9F8" }}>
+    <Box sx={{ bgcolor: 'background.default' }}>
+      <ThemeToggleButton variant="public" />
       {/* HEADER */}
       <AppBar
         position="fixed"
         elevation={0}
-        sx={{ bgcolor: "#fff", borderBottom: "1px solid #eee" }}
+        sx={{ bgcolor: 'background.paper', borderBottom: (theme) => `1px solid ${theme.palette.divider}` }}
       >
         <Container maxWidth="lg">
           <Toolbar sx={{ minHeight: "80px", justifyContent: "space-between" }}>
@@ -91,23 +98,29 @@ export default function BemVindo() {
               </Typography>
             </Box>
 
-            {/* ALTERADO PARA /cadastro */}
-            <Button
-              variant="contained"
-              onClick={() => navigate("/cadastro")}
-              sx={{
-                bgcolor: verde,
-                textTransform: "none",
-                px: 4,
-                py: 1.2,
-                borderRadius: "10px",
-              }}
-            >
-              Solicitar demonstração
-            </Button>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              {/* ALTERADO PARA /cadastro */}
+              <Button
+                variant="contained"
+                onClick={() => navigate("/cadastro")}
+                sx={{
+                  bgcolor: verde,
+                  textTransform: "none",
+                  px: 4,
+                  py: 1.2,
+                  borderRadius: "10px",
+                }}
+              >
+                Solicitar demonstração
+              </Button>
+
+
+            </Box>
           </Toolbar>
         </Container>
       </AppBar>
+
 
       {/* HERO */}
       <Container maxWidth="lg" sx={{ pt: 18, pb: 12 }}>
@@ -131,10 +144,11 @@ export default function BemVindo() {
               .
             </Typography>
 
+
             <Typography
               sx={{
                 mt: 3,
-                color: "#555",
+                color: 'text.secondary',
                 fontSize: "1.1rem",
                 maxWidth: "560px",
               }}
@@ -143,6 +157,7 @@ export default function BemVindo() {
               etiquetas eletrônicas em tempo real, garantindo precisão,
               agilidade e mais lucro para o seu negócio.
             </Typography>
+
 
             <Box
               sx={{
@@ -167,6 +182,7 @@ export default function BemVindo() {
                 Solicitar demonstração
               </Button>
 
+
               {/* JÁ ESTAVA CERTO */}
               <Button
                 variant="outlined"
@@ -185,10 +201,11 @@ export default function BemVindo() {
             </Box>
           </Grid>
 
+
           <Grid item xs={12} md={6}>
             <Box
               sx={{
-                bgcolor: "#DDF3EA",
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.20)' : '#DDF3EA',
                 borderRadius: "50%",
                 p: 4,
               }}
@@ -205,11 +222,13 @@ export default function BemVindo() {
         </Grid>
       </Container>
 
+
       {/* PROBLEMA */}
       <Container maxWidth="lg" sx={{ py: 10 }}>
         <Typography sx={{ color: verde, fontWeight: 800 }}>
           O PROBLEMA
         </Typography>
+
 
         <Typography
           sx={{
@@ -221,6 +240,7 @@ export default function BemVindo() {
           Desafios que impactam o seu negócio
         </Typography>
 
+
         <Grid container spacing={3}>
           {cardsProblema.map((item, i) => (
             <Grid item xs={12} sm={6} md={3} key={i}>
@@ -228,7 +248,7 @@ export default function BemVindo() {
                 sx={{
                   borderRadius: "16px",
                   height: "100%",
-                  boxShadow: "0 10px 30px rgba(0,0,0,.05)",
+                  boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 10px 30px rgba(0,0,0,.30)' : '0 10px 30px rgba(0,0,0,.05)',
                 }}
               >
                 <CardContent>
@@ -236,7 +256,8 @@ export default function BemVindo() {
                     {item.titulo}
                   </Typography>
 
-                  <Typography sx={{ color: "#666", fontSize: ".95rem" }}>
+
+                  <Typography sx={{ color: 'text.secondary', fontSize: ".95rem" }}>
                     {item.texto}
                   </Typography>
                 </CardContent>
@@ -246,18 +267,21 @@ export default function BemVindo() {
         </Grid>
       </Container>
 
+
       {/* SOLUÇÃO */}
-      <Box sx={{ bgcolor: "#EFF3F1", py: 12 }}>
+      <Box sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? '#111827' : '#EFF3F1', py: 12 }}>
         <Container maxWidth="lg">
           <Typography sx={{ color: verde, fontWeight: 800 }}>
             A SOLUÇÃO
           </Typography>
+
 
           <Typography
             sx={{ fontSize: "2rem", fontWeight: 800, mb: 6 }}
           >
             NuPreço: integração, automação e precisão
           </Typography>
+
 
           <Grid container spacing={5} alignItems="center">
             <Grid item xs={12} md={5}>
@@ -275,6 +299,7 @@ export default function BemVindo() {
               </Typography>
             </Grid>
 
+
             <Grid item xs={12} md={7}>
               <Box
                 component="img"
@@ -291,11 +316,13 @@ export default function BemVindo() {
         </Container>
       </Box>
 
+
       {/* EQUIPE */}
       <Container maxWidth="lg" sx={{ py: 12 }}>
         <Typography sx={{ color: verde, fontWeight: 800 }}>
           QUEM FAZ O NUPREÇO ACONTECER
         </Typography>
+
 
         <Typography
           sx={{
@@ -306,6 +333,7 @@ export default function BemVindo() {
         >
           Um time comprometido com a inovação e o seu sucesso.
         </Typography>
+
 
         <Grid container spacing={3}>
           {equipe.map((item, i) => (
@@ -329,9 +357,11 @@ export default function BemVindo() {
                   }}
                 />
 
+
                 <Typography sx={{ fontWeight: 800 }}>
                   {item.nome}
                 </Typography>
+
 
                 <Typography
                   sx={{
@@ -344,7 +374,8 @@ export default function BemVindo() {
                   {item.cargo}
                 </Typography>
 
-                <Typography sx={{ color: "#666" }}>
+
+                <Typography sx={{ color: 'text.secondary' }}>
                   {item.texto}
                 </Typography>
               </Card>
@@ -352,6 +383,7 @@ export default function BemVindo() {
           ))}
         </Grid>
       </Container>
+
 
       {/* APP CTA */}
       <Box sx={{ bgcolor: verde, py: 12 }}>
@@ -369,17 +401,19 @@ export default function BemVindo() {
                 Seu negócio na palma da mão.
               </Typography>
 
+
               <Typography sx={{ color: "#fff", mb: 4 }}>
                 Automatize sua precificação e gerencie sua rentabilidade de
                 qualquer lugar. Escaneie o QR Code ao lado e instale o app
                 NuPreço agora mesmo.
               </Typography>
 
+
               {/* ALTERADO PARA /cadastro */}
               <Button
                 onClick={() => navigate("/cadastro")}
                 sx={{
-                  bgcolor: "#fff",
+                  bgcolor: 'background.paper',
                   color: verde,
                   textTransform: "none",
                   px: 4,
@@ -391,21 +425,23 @@ export default function BemVindo() {
               </Button>
             </Grid>
 
+
             <Grid item xs={12} md={6}>
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
                   <Box
                     component="img"
                     src="/Celular.png"
-                    sx={{ width: "100%" }}
+                    sx={{ width: "130%" }}
                   />
                 </Grid>
+
 
                 <Grid item xs={12} sm={6}>
                   <Box
                     component="img"
                     src="/qrcod.png"
-                    sx={{ width: "100%" }}
+                    sx={{ width: "90%" }}
                   />
                 </Grid>
               </Grid>
@@ -413,6 +449,7 @@ export default function BemVindo() {
           </Grid>
         </Container>
       </Box>
+
 
       {/* FOOTER */}
       <Box sx={{ bgcolor: "#0A3F2A", color: "#fff", py: 8 }}>
@@ -423,10 +460,12 @@ export default function BemVindo() {
                 NuPreço
               </Typography>
 
+
               <Typography>
                 Integração, automação e precisão para transformar seu negócio.
               </Typography>
             </Grid>
+
 
             <Grid item xs={12} md={4}>
               <Typography sx={{ fontWeight: 800, mb: 2 }}>
@@ -437,6 +476,7 @@ export default function BemVindo() {
               <Typography>Gestão de Fluxo</Typography>
             </Grid>
 
+
             <Grid item xs={12} md={4}>
               <Typography sx={{ fontWeight: 800, mb: 2 }}>
                 Contato
@@ -445,6 +485,7 @@ export default function BemVindo() {
               <Typography>(11) 99999-9999</Typography>
             </Grid>
           </Grid>
+
 
           <Typography
             sx={{
@@ -461,3 +502,4 @@ export default function BemVindo() {
     </Box>
   );
 }
+

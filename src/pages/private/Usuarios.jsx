@@ -29,16 +29,20 @@ import EditIcon from '@mui/icons-material/EditOutlined';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SaveIcon from '@mui/icons-material/SaveOutlined';
 
+
 import usuarioService from '../../services/usuarioService';
 import { getApiErrorMessage } from '../../services/apiResponse';
 
+
 const initialForm = { nome: '', email: '', senha: '' };
+
 
 const formatarPerfil = (role) => {
   if (role === 'GESTOR') return 'Administrador';
   if (role === 'FUNCIONARIO') return 'Funcionário';
   return role || 'Usuário';
 };
+
 
 const Usuarios = () => {
   const theme = useTheme();
@@ -52,9 +56,11 @@ const Usuarios = () => {
   const [usuarioEditando, setUsuarioEditando] = useState(null);
   const [formEdicao, setFormEdicao] = useState(initialForm);
 
+
   const carregarUsuarios = async () => {
     setCarregando(true);
     setErro('');
+
 
     try {
       const data = await usuarioService.listar();
@@ -66,30 +72,37 @@ const Usuarios = () => {
     }
   };
 
+
   useEffect(() => {
     carregarUsuarios();
   }, []);
+
 
   const alterarCampo = (event) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+
   const alterarCampoEdicao = (event) => {
     const { name, value } = event.target;
     setFormEdicao((prev) => ({ ...prev, [name]: value }));
   };
 
+
   const cadastrarFuncionario = async () => {
     setErro('');
     setSucesso('');
+
 
     if (!form.nome || !form.email || !form.senha) {
       setErro('Preencha nome, e-mail e senha.');
       return;
     }
 
+
     setSalvando(true);
+
 
     try {
       await usuarioService.cadastrarFuncionario(form);
@@ -103,6 +116,7 @@ const Usuarios = () => {
     }
   };
 
+
   const abrirEdicao = (usuario) => {
     setUsuarioEditando(usuario);
     setFormEdicao({
@@ -113,24 +127,30 @@ const Usuarios = () => {
     setModalEdicaoAberto(true);
   };
 
+
   const fecharEdicao = () => {
     setModalEdicaoAberto(false);
     setUsuarioEditando(null);
     setFormEdicao(initialForm);
   };
 
+
   const salvarEdicao = async () => {
     setErro('');
     setSucesso('');
 
+
     if (!usuarioEditando?.id) return;
+
 
     if (!formEdicao.nome || !formEdicao.email || !formEdicao.senha) {
       setErro('Para atualizar o usuário, preencha nome, e-mail e senha.');
       return;
     }
 
+
     setSalvando(true);
+
 
     try {
       await usuarioService.atualizar(usuarioEditando.id, formEdicao);
@@ -144,14 +164,17 @@ const Usuarios = () => {
     }
   };
 
+
   const excluirUsuario = async (usuario) => {
     setErro('');
     setSucesso('');
+
 
     if (usuario.role === 'GESTOR') {
       setErro('O Gestor não pode ser excluído pelo sistema.');
       return;
     }
+
 
     try {
       await usuarioService.excluir(usuario.id);
@@ -161,6 +184,7 @@ const Usuarios = () => {
       setErro(getApiErrorMessage(error, 'Não foi possível excluir o usuário.'));
     }
   };
+
 
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100%', p: { xs: 2, sm: 3, lg: 4 }, overflowX: 'hidden' }}>
@@ -174,6 +198,7 @@ const Usuarios = () => {
           </Typography>
         </Box>
 
+
         <Button
           variant="outlined"
           startIcon={<RefreshIcon />}
@@ -184,8 +209,10 @@ const Usuarios = () => {
         </Button>
       </Stack>
 
+
       {erro && <Alert severity="error" sx={{ mb: 2 }}>{erro}</Alert>}
       {sucesso && <Alert severity="success" sx={{ mb: 2 }}>{sucesso}</Alert>}
+
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>
@@ -197,10 +224,12 @@ const Usuarios = () => {
               </Typography>
             </Stack>
 
+
             <Stack spacing={2}>
               <TextField label="Nome" name="nome" value={form.nome} onChange={alterarCampo} fullWidth />
               <TextField label="E-mail" name="email" value={form.email} onChange={alterarCampo} fullWidth />
               <TextField label="Senha" name="senha" type="password" value={form.senha} onChange={alterarCampo} fullWidth />
+
 
               <Button
                 variant="contained"
@@ -214,21 +243,23 @@ const Usuarios = () => {
           </Card>
         </Grid>
 
+
         <Grid item xs={12} md={8}>
           <Card sx={{ p: { xs: 2, sm: 3 }, borderRadius: '25px', border: `1px solid ${theme.palette.divider}` }}>
             <Typography sx={{ color: '#128654', fontWeight: 800, mb: 2 }}>
               Usuários Cadastrados
             </Typography>
 
+
             {carregando ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
                 <CircularProgress sx={{ color: '#128654' }} />
               </Box>
             ) : (
-              <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '15px', border: '1px solid #EEE', overflowX: 'auto' }}>
+              <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '15px', border: (theme) => `1px solid ${theme.palette.divider}`, overflowX: 'auto' }}>
                 <Table sx={{ minWidth: 720 }}>
                   <TableHead>
-                    <TableRow sx={{ bgcolor: '#F6FBF8' }}>
+                    <TableRow sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.14)' : '#F6FBF8' }}>
                       <TableCell sx={{ fontWeight: 800 }}>Nome</TableCell>
                       <TableCell sx={{ fontWeight: 800 }}>E-mail</TableCell>
                       <TableCell sx={{ fontWeight: 800 }}>Perfil</TableCell>
@@ -292,6 +323,7 @@ const Usuarios = () => {
         </Grid>
       </Grid>
 
+
       <Dialog open={modalEdicaoAberto} onClose={fecharEdicao} fullWidth maxWidth="sm">
         <DialogTitle sx={{ color: '#128654', fontWeight: 800 }}>
           Editar Usuário
@@ -322,4 +354,8 @@ const Usuarios = () => {
   );
 };
 
+
 export default Usuarios;
+
+
+

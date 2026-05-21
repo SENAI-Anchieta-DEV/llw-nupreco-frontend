@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+
 import MenuIcon from '@mui/icons-material/Menu';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
 import PersonIcon from '@mui/icons-material/PersonOutline';
@@ -22,7 +23,10 @@ import CategoryIcon from '@mui/icons-material/CategoryOutlined';
 import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
 import LogoutIcon from '@mui/icons-material/ExitToAppOutlined';
 
+
 import useAuth from '../hooks/useAuth';
+import ThemeToggleButton from './ThemeToggleButton';
+
 
 const SidebarMenu = ({ modulos }) => {
   const navigate = useNavigate();
@@ -30,23 +34,28 @@ const SidebarMenu = ({ modulos }) => {
   const { logout } = useAuth();
   const [aberto, setAberto] = useState(false);
 
+
   const toggleMenu = () => {
     setAberto((prev) => !prev);
   };
+
 
   const navegar = (rota) => {
     if (rota) {
       navigate(rota);
     }
 
+
     setAberto(false);
   };
+
 
   const sair = () => {
     logout();
     setAberto(false);
     navigate('/entrar');
   };
+
 
   const modulosPadrao = [
     { text: 'Início', icon: <HomeIcon />, rota: '/inicio' },
@@ -60,7 +69,9 @@ const SidebarMenu = ({ modulos }) => {
     { text: 'Sair', icon: <LogoutIcon />, action: sair },
   ];
 
+
   const itensMenu = Array.isArray(modulos) && modulos.length > 0 ? modulos : modulosPadrao;
+
 
   return (
     <>
@@ -84,9 +95,11 @@ const SidebarMenu = ({ modulos }) => {
           NuPreço
         </Typography>
 
+
         <List>
           {itensMenu.map((item) => {
             const ativo = item.rota && location.pathname === item.rota;
+
 
             return (
               <ListItemButton
@@ -97,6 +110,7 @@ const SidebarMenu = ({ modulos }) => {
                     setAberto(false);
                     return;
                   }
+
 
                   navegar(item.rota);
                 }}
@@ -110,6 +124,7 @@ const SidebarMenu = ({ modulos }) => {
                   {item.icon}
                 </ListItemIcon>
 
+
                 <ListItemText
                   primary={item.text}
                   primaryTypographyProps={{ fontWeight: 'bold' }}
@@ -119,6 +134,7 @@ const SidebarMenu = ({ modulos }) => {
           })}
         </List>
       </Drawer>
+
 
       <Box
         sx={{
@@ -139,11 +155,23 @@ const SidebarMenu = ({ modulos }) => {
         <IconButton onClick={toggleMenu} sx={{ color: 'white' }}>
           <MenuIcon sx={{ fontSize: { xs: '2.5rem', lg: '2.8rem' } }} />
         </IconButton>
+
+
+        <Box sx={{ flexGrow: 1 }} />
+
+
+        <ThemeToggleButton variant="sidebar" />
       </Box>
     </>
   );
 };
 
+
 export default SidebarMenu;
+
+
+
+
+
 
 

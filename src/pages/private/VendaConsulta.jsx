@@ -28,8 +28,12 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
 
+
+
 import vendaService from '../../services/vendaService';
 import { getApiErrorMessage } from '../../services/apiResponse';
+
+
 
 
 const motivosCancelamento = [
@@ -43,10 +47,14 @@ const motivosCancelamento = [
 ];
 
 
+
+
 const statusColors = {
   FINALIZADA: { bg: '#E8F5E9', color: '#2E7D32' },
   CANCELADA: { bg: '#FFEBEE', color: '#C62828' },
 };
+
+
 
 
 const getMotivoCancelamento = (venda) => {
@@ -54,10 +62,14 @@ const getMotivoCancelamento = (venda) => {
 };
 
 
+
+
 const LinhaVenda = ({ venda, onAbrirCancelamento }) => {
   const [aberta, setAberta] = useState(false);
   const statusColor = statusColors[venda.status] || statusColors.FINALIZADA;
   const motivoCancelamento = getMotivoCancelamento(venda);
+
+
 
 
   return (
@@ -98,25 +110,27 @@ const LinhaVenda = ({ venda, onAbrirCancelamento }) => {
       <TableRow>
         <TableCell colSpan={9} sx={{ py: 0 }}>
           <Collapse in={aberta} timeout="auto" unmountOnExit>
-            <Box sx={{ p: 2, bgcolor: '#FAFAFA' }}>
+            <Box sx={{ p: 2, bgcolor: 'background.default' }}>
               {venda.status === 'CANCELADA' && (
                 <Box
                   sx={{
                     mb: 2,
                     p: 1.5,
                     borderRadius: '12px',
-                    border: '1px solid #FFCDD2',
-                    bgcolor: '#FFF5F5',
+                    border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(198,40,40,0.45)' : '#FFCDD2'}`,
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(198,40,40,0.14)' : '#FFF5F5',
                   }}
                 >
                   <Typography sx={{ color: '#C62828', fontWeight: 800, mb: 0.5 }}>
                     Motivo Do Cancelamento
                   </Typography>
-                  <Typography sx={{ color: '#555', fontWeight: 600 }}>
+                  <Typography sx={{ color: 'text.secondary', fontWeight: 600 }}>
                     {motivoCancelamento || 'Motivo não informado.'}
                   </Typography>
                 </Box>
               )}
+
+
 
 
               <Typography sx={{ color: '#128654', fontWeight: 800, mb: 1 }}>
@@ -151,13 +165,19 @@ const LinhaVenda = ({ venda, onAbrirCancelamento }) => {
 };
 
 
+
+
 const DialogCancelamentoVenda = ({ aberta, venda, motivoSelecionado, setMotivoSelecionado, onFechar, onConfirmar, cancelando }) => {
   useEffect(() => {
     if (!aberta) return undefined;
 
 
+
+
     const selecionarMotivoPeloTeclado = (event) => {
       const numeroDigitado = Number(event.key);
+
+
 
 
       if (numeroDigitado >= 1 && numeroDigitado <= motivosCancelamento.length) {
@@ -166,13 +186,19 @@ const DialogCancelamentoVenda = ({ aberta, venda, motivoSelecionado, setMotivoSe
     };
 
 
+
+
     window.addEventListener('keydown', selecionarMotivoPeloTeclado);
+
+
 
 
     return () => {
       window.removeEventListener('keydown', selecionarMotivoPeloTeclado);
     };
   }, [aberta, setMotivoSelecionado]);
+
+
 
 
   return (
@@ -186,9 +212,13 @@ const DialogCancelamentoVenda = ({ aberta, venda, motivoSelecionado, setMotivoSe
         </Typography>
 
 
+
+
         <Stack spacing={1.2}>
           {motivosCancelamento.map((motivo, index) => {
             const selecionado = motivoSelecionado === motivo;
+
+
 
 
             return (
@@ -208,7 +238,7 @@ const DialogCancelamentoVenda = ({ aberta, venda, motivoSelecionado, setMotivoSe
                   py: 1.2,
                   '&:hover': {
                     borderColor: '#128654',
-                    bgcolor: '#F6FBF8',
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.14)' : '#F6FBF8',
                   },
                 }}
               >
@@ -237,7 +267,7 @@ const DialogCancelamentoVenda = ({ aberta, venda, motivoSelecionado, setMotivoSe
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 3 }}>
-        <Button onClick={onFechar} disabled={cancelando} sx={{ color: '#555', textTransform: 'none', fontWeight: 700 }}>
+        <Button onClick={onFechar} disabled={cancelando} sx={{ color: 'text.secondary', textTransform: 'none', fontWeight: 700 }}>
           Voltar
         </Button>
         <Button
@@ -256,6 +286,8 @@ const DialogCancelamentoVenda = ({ aberta, venda, motivoSelecionado, setMotivoSe
 };
 
 
+
+
 const VendaConsulta = () => {
   const [vendas, setVendas] = useState([]);
   const [carregando, setCarregando] = useState(false);
@@ -266,9 +298,13 @@ const VendaConsulta = () => {
   const [motivoSelecionado, setMotivoSelecionado] = useState('');
 
 
+
+
   const carregarVendas = async () => {
     setCarregando(true);
     setErro('');
+
+
 
 
     try {
@@ -282,9 +318,13 @@ const VendaConsulta = () => {
   };
 
 
+
+
   useEffect(() => {
     carregarVendas();
   }, []);
+
+
 
 
   const abrirCancelamento = (venda) => {
@@ -295,15 +335,21 @@ const VendaConsulta = () => {
   };
 
 
+
+
   const fecharCancelamento = () => {
     setVendaParaCancelar(null);
     setMotivoSelecionado('');
   };
 
 
+
+
   const confirmarCancelamento = async () => {
     setErro('');
     setSucesso('');
+
+
 
 
     if (!vendaParaCancelar || !motivoSelecionado) {
@@ -312,7 +358,11 @@ const VendaConsulta = () => {
     }
 
 
+
+
     setCancelando(true);
+
+
 
 
     try {
@@ -328,8 +378,10 @@ const VendaConsulta = () => {
   };
 
 
+
+
   return (
-    <Box sx={{ bgcolor: '#F9F9F9', minHeight: '100%', p: { xs: 3, lg: 4 } }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100%', p: { xs: 3, lg: 4 } }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
         <Box>
           <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
@@ -339,6 +391,8 @@ const VendaConsulta = () => {
             Vendas
           </Typography>
         </Box>
+
+
 
 
         <Button
@@ -352,20 +406,24 @@ const VendaConsulta = () => {
       </Stack>
 
 
+
+
       {erro && <Alert severity="error" sx={{ mb: 2 }}>{erro}</Alert>}
       {sucesso && <Alert severity="success" sx={{ mb: 2 }}>{sucesso}</Alert>}
 
 
-      <Card sx={{ p: 3, borderRadius: '25px', border: '1px solid #F0F0F0' }}>
+
+
+      <Card sx={{ p: 3, borderRadius: '25px', border: (theme) => `1px solid ${theme.palette.divider}` }}>
         {carregando ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
             <CircularProgress sx={{ color: '#128654' }} />
           </Box>
         ) : (
-          <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '15px', border: '1px solid #EEE' }}>
+          <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '15px', border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <Table>
               <TableHead>
-                <TableRow sx={{ bgcolor: '#F6FBF8' }}>
+                <TableRow sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.14)' : '#F6FBF8' }}>
                   <TableCell />
                   <TableCell sx={{ fontWeight: 800 }}>ID</TableCell>
                   <TableCell sx={{ fontWeight: 800 }}>Data</TableCell>
@@ -394,6 +452,8 @@ const VendaConsulta = () => {
       </Card>
 
 
+
+
       <DialogCancelamentoVenda
         aberta={Boolean(vendaParaCancelar)}
         venda={vendaParaCancelar}
@@ -408,4 +468,9 @@ const VendaConsulta = () => {
 };
 
 
+
+
 export default VendaConsulta;
+
+
+

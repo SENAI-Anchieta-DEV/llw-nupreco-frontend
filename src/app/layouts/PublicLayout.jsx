@@ -5,18 +5,23 @@ import {
   CssBaseline,
   Container,
 } from "@mui/material";
+import ThemeToggleButton from "../../components/ThemeToggleButton";
+
 
 const PublicLayout = ({ title, subtitle, children }) => {
   const verde = "#128654";
 
+
   return (
     <>
       <CssBaseline />
+      <ThemeToggleButton variant="public" />
+
 
       <Box
         sx={{
           minHeight: "100vh",
-          bgcolor: "#F8F9F8",
+          bgcolor: 'background.default',
           display: "flex",
           flexDirection: { xs: "column", md: "row" },
         }}
@@ -26,7 +31,7 @@ const PublicLayout = ({ title, subtitle, children }) => {
           sx={{
             width: { xs: "100%", md: "50%" },
             minHeight: "100vh",
-            bgcolor: "#fff",
+            bgcolor: 'background.paper',
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -35,7 +40,9 @@ const PublicLayout = ({ title, subtitle, children }) => {
           }}
         >
           <Container maxWidth="sm">
-            <Box sx={{ width: "100%" }}>
+            <Box sx={{ width: "100%", position: "relative" }}>
+
+
               <Typography
                 sx={{
                   color: verde,
@@ -48,13 +55,14 @@ const PublicLayout = ({ title, subtitle, children }) => {
                 NuPreço
               </Typography>
 
+
               {title && (
                 <Typography
                   sx={{
                     fontWeight: 800,
                     fontSize: "1.6rem",
                     textAlign: "center",
-                    color: "#111",
+                    color: 'text.primary',
                     mb: 1,
                   }}
                 >
@@ -62,11 +70,12 @@ const PublicLayout = ({ title, subtitle, children }) => {
                 </Typography>
               )}
 
+
               {subtitle && (
                 <Typography
                   sx={{
                     textAlign: "center",
-                    color: "#666",
+                    color: 'text.secondary',
                     fontSize: ".95rem",
                     mb: 4,
                     maxWidth: "420px",
@@ -77,7 +86,9 @@ const PublicLayout = ({ title, subtitle, children }) => {
                 </Typography>
               )}
 
+
               <Box sx={{ width: "100%" }}>{children}</Box>
+
 
               <Box
                 sx={{
@@ -92,17 +103,18 @@ const PublicLayout = ({ title, subtitle, children }) => {
                   component="span"
                   sx={{
                     fontSize: 18,
-                    color: "#777",
+                    color: 'text.secondary',
                     lineHeight: 1,
                   }}
                 >
                   🌐
                 </Typography>
 
+
                 <Typography
                   sx={{
                     fontSize: ".85rem",
-                    color: "#777",
+                    color: 'text.secondary',
                     fontWeight: 700,
                   }}
                 >
@@ -112,6 +124,7 @@ const PublicLayout = ({ title, subtitle, children }) => {
             </Box>
           </Container>
         </Box>
+
 
         {/* LADO DIREITO */}
         <Box
@@ -139,6 +152,7 @@ const PublicLayout = ({ title, subtitle, children }) => {
             Venda com eficiência, onde você estiver
           </Typography>
 
+
           <Typography
             sx={{
               fontSize: "1rem",
@@ -153,6 +167,7 @@ const PublicLayout = ({ title, subtitle, children }) => {
             eficiência que o dia a dia exige.
           </Typography>
 
+
           <Box
             component="img"
             src="/EXEMPLODESISTEMA.png"
@@ -161,7 +176,7 @@ const PublicLayout = ({ title, subtitle, children }) => {
               width: "100%",
               maxWidth: "540px",
               borderRadius: "18px",
-              boxShadow: "0 25px 50px rgba(0,0,0,.18)",
+              boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 25px 50px rgba(0,0,0,.42)' : '0 25px 50px rgba(0,0,0,.18)',
             }}
           />
         </Box>
@@ -170,4 +185,6 @@ const PublicLayout = ({ title, subtitle, children }) => {
   );
 };
 
+
 export default PublicLayout;
+
