@@ -1,0 +1,13 @@
+/* Reset total para garantir que nada escape das bordas */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  display: flex; /* Garante que o container ocupe o espaço todo */
+  flex-direction: column;
+}
+
+* {
+  box-sizing: border-box; /* Evita que o padding aumente o tamanho dos elementos */
+}
