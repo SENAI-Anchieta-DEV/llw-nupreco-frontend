@@ -8,11 +8,6 @@ const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
 
-=======
-const PrivateRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
-
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   if (loading) {
     return null;
   }
