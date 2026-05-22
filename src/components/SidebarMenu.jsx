@@ -12,11 +12,8 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom';
 
 
-<<<<<<< HEAD
 
 
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 import MenuIcon from '@mui/icons-material/Menu';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
 import PersonIcon from '@mui/icons-material/PersonOutline';
@@ -29,7 +26,6 @@ import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
 import LogoutIcon from '@mui/icons-material/ExitToAppOutlined';
 
 
-<<<<<<< HEAD
 
 
 import useAuth from '../hooks/useAuth';
@@ -48,45 +44,25 @@ const SidebarMenu = ({ modulos }) => {
 
 
 
-=======
-import useAuth from '../hooks/useAuth';
-import ThemeToggleButton from './ThemeToggleButton';
-
-
-const SidebarMenu = ({ modulos }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { logout } = useAuth();
-  const [aberto, setAberto] = useState(false);
-
-
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   const toggleMenu = () => {
     setAberto((prev) => !prev);
   };
 
 
-<<<<<<< HEAD
 
 
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   const navegar = (rota) => {
     if (rota) {
       navigate(rota);
     }
 
 
-<<<<<<< HEAD
 
 
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
     setAberto(false);
   };
 
 
-<<<<<<< HEAD
 
 
   const sair = () => {
@@ -98,15 +74,6 @@ const SidebarMenu = ({ modulos }) => {
 
 
 
-=======
-  const sair = () => {
-    logout();
-    setAberto(false);
-    navigate('/entrar');
-  };
-
-
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   const modulosPadrao = [
     { text: 'Início', icon: <HomeIcon />, rota: '/inicio' },
     { text: 'Usuário', icon: <PersonIcon />, rota: '/usuarios' },
@@ -120,7 +87,6 @@ const SidebarMenu = ({ modulos }) => {
   ];
 
 
-<<<<<<< HEAD
 
 
   const itensMenuBase = Array.isArray(modulos) && modulos.length > 0 ? modulos : modulosPadrao;
@@ -134,9 +100,6 @@ const SidebarMenu = ({ modulos }) => {
   });
 
 
-=======
-  const itensMenu = Array.isArray(modulos) && modulos.length > 0 ? modulos : modulosPadrao;
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 
 
   return (
@@ -162,21 +125,15 @@ const SidebarMenu = ({ modulos }) => {
         </Typography>
 
 
-<<<<<<< HEAD
 
 
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
         <List>
           {itensMenu.map((item) => {
             const ativo = item.rota && location.pathname === item.rota;
 
 
-<<<<<<< HEAD
 
 
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
             return (
               <ListItemButton
                 key={item.text}
@@ -188,11 +145,8 @@ const SidebarMenu = ({ modulos }) => {
                   }
 
 
-<<<<<<< HEAD
 
 
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
                   navegar(item.rota);
                 }}
                 sx={{
@@ -206,11 +160,8 @@ const SidebarMenu = ({ modulos }) => {
                 </ListItemIcon>
 
 
-<<<<<<< HEAD
 
 
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
                 <ListItemText
                   primary={item.text}
                   primaryTypographyProps={{ fontWeight: 'bold' }}
@@ -222,11 +173,8 @@ const SidebarMenu = ({ modulos }) => {
       </Drawer>
 
 
-<<<<<<< HEAD
 
 
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
       <Box
         sx={{
           width: { xs: 70, lg: 85 },
@@ -248,7 +196,6 @@ const SidebarMenu = ({ modulos }) => {
         </IconButton>
 
 
-<<<<<<< HEAD
 
 
         <Box sx={{ flexGrow: 1 }} />
@@ -256,11 +203,6 @@ const SidebarMenu = ({ modulos }) => {
 
 
 
-=======
-        <Box sx={{ flexGrow: 1 }} />
-
-
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
         <ThemeToggleButton variant="sidebar" />
       </Box>
     </>
@@ -268,11 +210,8 @@ const SidebarMenu = ({ modulos }) => {
 };
 
 
-<<<<<<< HEAD
 
 
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 export default SidebarMenu;
 
 
@@ -281,7 +220,6 @@ export default SidebarMenu;
 
 
 
-<<<<<<< HEAD
 
 
 
@@ -292,5 +230,3 @@ export default SidebarMenu;
 
 
 
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65

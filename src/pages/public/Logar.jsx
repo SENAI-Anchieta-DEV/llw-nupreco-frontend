@@ -1,55 +1,35 @@
 import React, { useState } from 'react';
-<<<<<<< HEAD
 import { Box, Button, Link as MuiLink, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import { verificarGestorCadastrado } from '../../utils/firstAccess';
 
-=======
-import { Box, Button, TextField, Typography } from '@mui/material';
-import { Link, useNavigate } from 'react-router-dom';
-import useAuth from '../../hooks/useAuth';
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 
 function Logar() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-<<<<<<< HEAD
-
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   const [form, setForm] = useState({
     nome: '',
     senha: '',
   });
 
-<<<<<<< HEAD
 
   const [erro, setErro] = useState('');
   const [erroCadastro, setErroCadastro] = useState('');
   const [loading, setLoading] = useState(false);
   const [verificandoCadastro, setVerificandoCadastro] = useState(false);
 
-=======
-  const [erro, setErro] = useState('');
-  const [loading, setLoading] = useState(false);
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 
   const handleChange = (event) => {
     const { name, value } = event.target;
 
-<<<<<<< HEAD
-
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
     setForm((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-<<<<<<< HEAD
 
   const handleCadastroClick = async (event) => {
     event.preventDefault();
@@ -93,27 +73,11 @@ function Logar() {
       navigate('/inicio', { replace: true });
     } catch (error) {
       setErro('Senha incorreta. A senha deve conter no mínimo 6 caracteres.');
-=======
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setErro('');
-    setLoading(true);
-
-    try {
-      await login(form.nome, form.senha);
-      navigate('/inicio');
-    } catch (error) {
-      setErro('Nome ou senha inválidos.');
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
     } finally {
       setLoading(false);
     }
   };
 
-<<<<<<< HEAD
-
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   return (
     <Box component="form" onSubmit={handleSubmit}>
       <TextField
@@ -127,10 +91,6 @@ function Logar() {
         required
       />
 
-<<<<<<< HEAD
-
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
       <TextField
         fullWidth
         label="Senha"
@@ -142,20 +102,12 @@ function Logar() {
         required
       />
 
-<<<<<<< HEAD
-
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
       {erro && (
         <Typography sx={{ color: 'error.main', mt: 1 }}>
           {erro}
         </Typography>
       )}
 
-<<<<<<< HEAD
-
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
       <Button
         type="submit"
         variant="contained"
@@ -166,7 +118,6 @@ function Logar() {
         {loading ? 'Entrando...' : 'Entrar'}
       </Button>
 
-<<<<<<< HEAD
 
       <Typography variant="body2" sx={{ textAlign: 'center' }}>
         Não possui conta?{' '}
@@ -204,19 +155,10 @@ function Logar() {
           {erroCadastro}
         </Typography>
       )}
-=======
-      <Typography variant="body2" sx={{ textAlign: 'center' }}>
-        Não possui conta? <Link to="/cadastro">Cadastre-se</Link>
-      </Typography>
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
     </Box>
   );
 }
 
-<<<<<<< HEAD
 
 export default Logar;
 
-=======
-export default Logar;
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65

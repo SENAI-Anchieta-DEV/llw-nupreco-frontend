@@ -1,52 +1,15 @@
-<<<<<<< HEAD
 import React, { useEffect, useState } from 'react';
-=======
-import React from 'react';
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-
-
-
-
-<<<<<<< HEAD
-
-
-
-
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 import PublicLayout from '../layouts/PublicLayout';
 import PrivateLayout from '../layouts/PrivateLayout';
 import PrivateRoute from './PrivateRoute';
 import PublicRoute from './PublicRoute';
-<<<<<<< HEAD
 import useAuth from '../../hooks/useAuth';
 import { canAccessRoute } from '../../utils/permissions';
 import { verificarGestorCadastrado } from '../../utils/firstAccess';
-
-
-
-
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
-
-
-
-
 import BemVindo from '../../pages/public/BemVindo';
 import CadastroPage from '../../pages/public/Cadastro';
 import EntrarPage from '../../pages/public/Logar';
-
-
-
-
-<<<<<<< HEAD
-
-
-
-
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 import Inicio from '../../pages/private/inicio';
 import PdvRapido from '../../pages/private/PdvRapido';
 import Estoque from '../../pages/private/Estoque';
@@ -55,15 +18,6 @@ import Contas from '../../pages/private/Contas';
 import Usuarios from '../../pages/private/Usuarios';
 import VendaConsulta from '../../pages/private/VendaConsulta';
 import EtiquetaDigital from '../../pages/private/EtiquetaDigital';
-
-
-
-
-<<<<<<< HEAD
-
-
-
-
 
 
 const FirstGestorRoute = ({ children }) => {
@@ -122,8 +76,6 @@ const RoleProtectedRoute = ({ route, children }) => {
 };
 
 
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 const AppRoutes = () => {
   return (
     <BrowserRouter>
@@ -132,13 +84,10 @@ const AppRoutes = () => {
 
 
 
-<<<<<<< HEAD
 
 
 
 
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
         {/* ✅ BEM-VINDO (SEM LAYOUT — CORREÇÃO PRINCIPAL) */}
         <Route
           path="/"
@@ -148,13 +97,10 @@ const AppRoutes = () => {
 
 
 
-<<<<<<< HEAD
 
 
 
 
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
         {/* 🔐 ROTAS PÚBLICAS (com layout normal) */}
         <Route
           path="/entrar"
@@ -173,18 +119,14 @@ const AppRoutes = () => {
 
 
 
-<<<<<<< HEAD
 
 
 
 
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
         <Route
           path="/cadastro"
           element={
              <PublicRoute>
-<<<<<<< HEAD
               <FirstGestorRoute>
                 <PublicLayout
                   title="Criar Conta"
@@ -193,14 +135,6 @@ const AppRoutes = () => {
                   <CadastroPage />
                 </PublicLayout>
               </FirstGestorRoute>
-=======
-              <PublicLayout
-                title="Criar Conta"
-                subtitle="Cadastre-se para começar a usar o NuPreço."
-              >
-                <CadastroPage />
-              </PublicLayout>
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
             </PublicRoute>
           }
         />
@@ -208,13 +142,10 @@ const AppRoutes = () => {
 
 
 
-<<<<<<< HEAD
 
 
 
 
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
         {/* 🔒 ROTAS PRIVADAS */}
         <Route
           element={
@@ -227,7 +158,6 @@ const AppRoutes = () => {
           <Route path="/pdv" element={<PdvRapido />} />
           <Route path="/estoque" element={<Estoque />} />
           <Route path="/produtos" element={<Produto />} />
-<<<<<<< HEAD
           <Route
             path="/contas"
             element={
@@ -244,10 +174,6 @@ const AppRoutes = () => {
               </RoleProtectedRoute>
             }
           />
-=======
-          <Route path="/contas" element={<Contas />} />
-          <Route path="/usuarios" element={<Usuarios />} />
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
           <Route path="/vendas" element={<VendaConsulta />} />
           <Route path="/etiqueta-digital" element={<EtiquetaDigital />} />
         </Route>
@@ -255,26 +181,20 @@ const AppRoutes = () => {
 
 
 
-<<<<<<< HEAD
 
 
 
 
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
         {/* 🔁 fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
 
 
 
 
-<<<<<<< HEAD
 
 
 
 
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
       </Routes>
     </BrowserRouter>
   );
@@ -283,19 +203,15 @@ const AppRoutes = () => {
 
 
 
-<<<<<<< HEAD
 
 
 
 
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 export default AppRoutes;
 
 
 
 
-<<<<<<< HEAD
 
 
 
@@ -303,5 +219,3 @@ export default AppRoutes;
 
 
 
-=======
->>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
