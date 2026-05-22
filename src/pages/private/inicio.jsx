@@ -18,6 +18,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 
+<<<<<<< HEAD
 
 
 import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
@@ -25,6 +26,11 @@ import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
 
 
 
+=======
+import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
+
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 // Ícones da identidade visual NuPreço
 import MenuIcon from '@mui/icons-material/Menu';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
@@ -38,15 +44,21 @@ import LogoutIcon from '@mui/icons-material/ExitToAppOutlined';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 import useAuth from '../../hooks/useAuth';
 import ThemeToggleButton from '../../components/ThemeToggleButton';
 import contaService from '../../services/contaService';
 import { formatarMoeda, getNotificacoesContas, getTotalAPagar } from '../../utils/contasStatus';
+<<<<<<< HEAD
 import { canAccessRoute, normalizeRole } from '../../utils/permissions';
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 
 
 const formatarPerfil = (role) => {
@@ -57,8 +69,11 @@ const formatarPerfil = (role) => {
 };
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 const Inicio = ({
   onLogout,
   perfilUsuario,
@@ -68,22 +83,31 @@ const Inicio = ({
   const { user, logout } = useAuth();
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   const [menuAberto, setMenuAberto] = useState(false);
   const [anchorElNotif, setAnchorElNotif] = useState(null);
   const [contasApi, setContasApi] = useState([]);
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   const toggleMenu = () => setMenuAberto(!menuAberto);
   const handleOpenNotif = (event) => setAnchorElNotif(event.currentTarget);
   const handleCloseNotif = () => setAnchorElNotif(null);
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   useEffect(() => {
     const carregarContas = async () => {
       try {
@@ -95,27 +119,39 @@ const Inicio = ({
     };
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
     carregarContas();
   }, []);
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   const contasBase = useMemo(() => {
     return listaContasDoDia.length > 0 ? listaContasDoDia : contasApi;
   }, [listaContasDoDia, contasApi]);
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   const notificacoes = useMemo(() => getNotificacoesContas(contasBase), [contasBase]);
   const totalAPagar = useMemo(() => getTotalAPagar(contasBase), [contasBase]);
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   const sair = () => {
     if (onLogout) {
       onLogout();
@@ -123,6 +159,7 @@ const Inicio = ({
     }
 
 
+<<<<<<< HEAD
 
 
     logout();
@@ -141,10 +178,27 @@ const Inicio = ({
     { text: 'Estoque', icon: <InventoryIcon />, rota: '/estoque', action: () => navigate('/estoque') },
     { text: 'Produtos', icon: <CategoryIcon />, rota: '/produtos', action: () => navigate('/produtos') },
     { text: 'Etiqueta Digital', icon: <SellOutlinedIcon />, rota: '/etiqueta-digital', action: () => navigate('/etiqueta-digital') },
+=======
+    logout();
+    navigate('/entrar');
+  };
+
+
+  const modulos = [
+    { text: 'Início', icon: <HomeIcon />, action: () => navigate('/inicio') },
+    { text: 'Usuário', icon: <PersonIcon />, action: () => navigate('/usuarios') },
+    { text: 'Vendas', icon: <AssessmentIcon />, action: () => navigate('/vendas') },
+    { text: 'Pdv Rápido', icon: <StorefrontIcon />, action: () => navigate('/pdv') },
+    { text: 'Contas', icon: <ReportProblemIcon />, action: () => navigate('/contas') },
+    { text: 'Estoque', icon: <InventoryIcon />, action: () => navigate('/estoque') },
+    { text: 'Produtos', icon: <CategoryIcon />, action: () => navigate('/produtos') },
+    { text: 'Etiqueta Digital', icon: <SellOutlinedIcon />, action: () => navigate('/etiqueta-digital') },
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
     { text: 'Sair', icon: <LogoutIcon />, action: sair },
   ];
 
 
+<<<<<<< HEAD
 
 
   const modulosPermitidos = modulos.filter((item) => {
@@ -155,6 +209,8 @@ const Inicio = ({
 
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   return (
     <Box
       sx={{
@@ -168,8 +224,11 @@ const Inicio = ({
       <CssBaseline />
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
       {/* MENU LATERAL */}
       <Drawer
         anchor="left"
@@ -196,10 +255,15 @@ const Inicio = ({
         </Typography>
 
 
+<<<<<<< HEAD
 
 
         <List>
           {modulosPermitidos.map((item) => (
+=======
+        <List>
+          {modulos.map((item) => (
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
             <ListItem
               button
               key={item.text}
@@ -219,8 +283,11 @@ const Inicio = ({
               </ListItemIcon>
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
               <ListItemText
                 primary={item.text}
                 primaryTypographyProps={{
@@ -233,8 +300,11 @@ const Inicio = ({
       </Drawer>
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
       {/* SIDEBAR FIXA */}
       <Box
         sx={{
@@ -263,6 +333,7 @@ const Inicio = ({
         </IconButton>
 
 
+<<<<<<< HEAD
 
 
         <Box sx={{ flexGrow: 1 }} />
@@ -270,12 +341,20 @@ const Inicio = ({
 
 
 
+=======
+        <Box sx={{ flexGrow: 1 }} />
+
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
         <ThemeToggleButton variant="sidebar" />
       </Box>
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
       {/* ÁREA CENTRAL */}
       <Box
         sx={{
@@ -304,8 +383,11 @@ const Inicio = ({
           <Box sx={{ width: 48, display: { xs: 'none', lg: 'block' } }} />
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
           <Box
             sx={{
               px: { xs: 4, sm: 5, lg: 12 },
@@ -331,8 +413,11 @@ const Inicio = ({
           </Box>
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
           <Stack
             direction="row"
             spacing={3}
@@ -353,8 +438,11 @@ const Inicio = ({
             </Typography>
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
             <IconButton
               onClick={handleOpenNotif}
               sx={{
@@ -369,8 +457,11 @@ const Inicio = ({
           </Stack>
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
           <Menu
             anchorEl={anchorElNotif}
             open={Boolean(anchorElNotif)}
@@ -395,8 +486,11 @@ const Inicio = ({
               </Typography>
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
               <Typography
                 variant="caption"
                 sx={{
@@ -409,15 +503,21 @@ const Inicio = ({
             </Box>
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
             {notificacoes.length > 0 ? (
               notificacoes.map((conta, index) => {
                 const vencida = conta.status === 'VENCIDA';
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
                 return (
                   <MenuItem
                     key={conta.id || index}
@@ -433,8 +533,11 @@ const Inicio = ({
                       </Typography>
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
                       <Typography
                         variant="caption"
                         sx={{
@@ -457,8 +560,11 @@ const Inicio = ({
         </Box>
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
         {/* GRID CENTRAL */}
         <Box
           sx={{
@@ -475,12 +581,22 @@ const Inicio = ({
             pb: 4,
           }}
         >
+<<<<<<< HEAD
           {modulosPermitidos
             .filter((item) => {
               if (item.text === 'Início' || item.text === 'Usuário') return false;
               if (item.text === 'Etiqueta Digital') return normalizeRole(user?.role) === 'FUNCIONARIO';
               return true;
             })
+=======
+          {modulos
+            .filter(
+              (item) =>
+                item.text !== 'Início' &&
+                item.text !== 'Usuário' &&
+                item.text !== 'Etiqueta Digital'
+            )
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
             .map((item, index) => (
               <Card
                 key={index}
@@ -515,8 +631,11 @@ const Inicio = ({
                 </Typography>
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
                 <Box
                   sx={{
                     color: item.text === 'Sair' ? '#d32f2f' : '#128654',
@@ -539,8 +658,11 @@ const Inicio = ({
 };
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 export default Inicio;
 
 
@@ -549,6 +671,7 @@ export default Inicio;
 
 
 
+<<<<<<< HEAD
 
 
 
@@ -559,3 +682,5 @@ export default Inicio;
 
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65

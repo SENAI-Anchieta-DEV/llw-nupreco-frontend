@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import React, { useEffect, useState } from "react";
+=======
+import React from "react";
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 import {
   AppBar,
   Toolbar,
@@ -12,6 +16,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import ThemeToggleButton from "../../components/ThemeToggleButton";
+<<<<<<< HEAD
 import { verificarGestorCadastrado } from "../../utils/firstAccess";
 
 export default function BemVindo() {
@@ -38,6 +43,17 @@ export default function BemVindo() {
 
   const verde = "#128654";
 
+=======
+
+
+export default function BemVindo() {
+  const navigate = useNavigate();
+
+
+  const verde = "#128654";
+
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   const cardsProblema = [
     {
       titulo: "Processos manuais",
@@ -61,6 +77,10 @@ export default function BemVindo() {
     },
   ];
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   const equipe = [
     {
       img: "/willian.png",
@@ -85,14 +105,22 @@ export default function BemVindo() {
     },
   ];
 
+<<<<<<< HEAD
   return (
     <Box sx={{ bgcolor: "background.default" }}>
       <ThemeToggleButton variant="public" />
 
+=======
+
+  return (
+    <Box sx={{ bgcolor: 'background.default' }}>
+      <ThemeToggleButton variant="public" />
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
       {/* HEADER */}
       <AppBar
         position="fixed"
         elevation={0}
+<<<<<<< HEAD
         sx={{
           bgcolor: "background.paper",
           borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
@@ -105,13 +133,22 @@ export default function BemVindo() {
               justifyContent: "space-between",
             }}
           >
+=======
+        sx={{ bgcolor: 'background.paper', borderBottom: (theme) => `1px solid ${theme.palette.divider}` }}
+      >
+        <Container maxWidth="lg">
+          <Toolbar sx={{ minHeight: "80px", justifyContent: "space-between" }}>
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Box
                 component="img"
                 src="/image.png"
                 sx={{ width: 42, height: 42 }}
               />
+<<<<<<< HEAD
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
               <Typography
                 sx={{
                   fontWeight: 800,
@@ -123,6 +160,7 @@ export default function BemVindo() {
               </Typography>
             </Box>
 
+<<<<<<< HEAD
             <Box
               sx={{
                 display: "flex",
@@ -145,11 +183,35 @@ export default function BemVindo() {
                   Solicitar demonstração
                 </Button>
               )}
+=======
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              {/* ALTERADO PARA /cadastro */}
+              <Button
+                variant="contained"
+                onClick={() => navigate("/cadastro")}
+                sx={{
+                  bgcolor: verde,
+                  textTransform: "none",
+                  px: 4,
+                  py: 1.2,
+                  borderRadius: "10px",
+                }}
+              >
+                Solicitar demonstração
+              </Button>
+
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
             </Box>
           </Toolbar>
         </Container>
       </AppBar>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
       {/* HERO */}
       <Container maxWidth="lg" sx={{ pt: 18, pb: 12 }}>
         <Grid container spacing={6} alignItems="center">
@@ -172,10 +234,18 @@ export default function BemVindo() {
               .
             </Typography>
 
+<<<<<<< HEAD
             <Typography
               sx={{
                 mt: 3,
                 color: "text.secondary",
+=======
+
+            <Typography
+              sx={{
+                mt: 3,
+                color: 'text.secondary',
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
                 fontSize: "1.1rem",
                 maxWidth: "560px",
               }}
@@ -185,6 +255,10 @@ export default function BemVindo() {
               agilidade e mais lucro para o seu negócio.
             </Typography>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
             <Box
               sx={{
                 display: "flex",
@@ -193,6 +267,7 @@ export default function BemVindo() {
                 flexWrap: "wrap",
               }}
             >
+<<<<<<< HEAD
               {!gestorCadastrado && (
                 <Button
                   variant="contained"
@@ -212,6 +287,28 @@ export default function BemVindo() {
               <Button
                 variant="outlined"
                 onClick={() => navigate("/entrar")}
+=======
+              {/* ALTERADO PARA /cadastro */}
+              <Button
+                variant="contained"
+                onClick={() => navigate("/cadastro")}
+                sx={{
+                  bgcolor: verde,
+                  textTransform: "none",
+                  px: 4,
+                  py: 1.3,
+                  borderRadius: "10px",
+                }}
+              >
+                Solicitar demonstração
+              </Button>
+
+
+              {/* JÁ ESTAVA CERTO */}
+              <Button
+                variant="outlined"
+                onClick={() => navigate("/cadastro")}
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
                 sx={{
                   borderColor: verde,
                   color: verde,
@@ -226,6 +323,7 @@ export default function BemVindo() {
             </Box>
           </Grid>
 
+<<<<<<< HEAD
           <Grid item xs={12} md={6}>
             <Box
               sx={{
@@ -233,6 +331,13 @@ export default function BemVindo() {
                   theme.palette.mode === "dark"
                     ? "rgba(18,134,84,0.20)"
                     : "#DDF3EA",
+=======
+
+          <Grid item xs={12} md={6}>
+            <Box
+              sx={{
+                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.20)' : '#DDF3EA',
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
                 borderRadius: "50%",
                 p: 4,
               }}
@@ -249,12 +354,20 @@ export default function BemVindo() {
         </Grid>
       </Container>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
       {/* PROBLEMA */}
       <Container maxWidth="lg" sx={{ py: 10 }}>
         <Typography sx={{ color: verde, fontWeight: 800 }}>
           O PROBLEMA
         </Typography>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
         <Typography
           sx={{
             fontSize: "2rem",
@@ -265,6 +378,10 @@ export default function BemVindo() {
           Desafios que impactam o seu negócio
         </Typography>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
         <Grid container spacing={3}>
           {cardsProblema.map((item, i) => (
             <Grid item xs={12} sm={6} md={3} key={i}>
@@ -272,10 +389,14 @@ export default function BemVindo() {
                 sx={{
                   borderRadius: "16px",
                   height: "100%",
+<<<<<<< HEAD
                   boxShadow: (theme) =>
                     theme.palette.mode === "dark"
                       ? "0 10px 30px rgba(0,0,0,.30)"
                       : "0 10px 30px rgba(0,0,0,.05)",
+=======
+                  boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 10px 30px rgba(0,0,0,.30)' : '0 10px 30px rgba(0,0,0,.05)',
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
                 }}
               >
                 <CardContent>
@@ -283,12 +404,17 @@ export default function BemVindo() {
                     {item.titulo}
                   </Typography>
 
+<<<<<<< HEAD
                   <Typography
                     sx={{
                       color: "text.secondary",
                       fontSize: ".95rem",
                     }}
                   >
+=======
+
+                  <Typography sx={{ color: 'text.secondary', fontSize: ".95rem" }}>
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
                     {item.texto}
                   </Typography>
                 </CardContent>
@@ -298,6 +424,7 @@ export default function BemVindo() {
         </Grid>
       </Container>
 
+<<<<<<< HEAD
       {/* SOLUÇÃO */}
       <Box
         sx={{
@@ -306,26 +433,42 @@ export default function BemVindo() {
           py: 12,
         }}
       >
+=======
+
+      {/* SOLUÇÃO */}
+      <Box sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? '#111827' : '#EFF3F1', py: 12 }}>
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
         <Container maxWidth="lg">
           <Typography sx={{ color: verde, fontWeight: 800 }}>
             A SOLUÇÃO
           </Typography>
 
+<<<<<<< HEAD
           <Typography
             sx={{
               fontSize: "2rem",
               fontWeight: 800,
               mb: 6,
             }}
+=======
+
+          <Typography
+            sx={{ fontSize: "2rem", fontWeight: 800, mb: 6 }}
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
           >
             NuPreço: integração, automação e precisão
           </Typography>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
           <Grid container spacing={5} alignItems="center">
             <Grid item xs={12} md={5}>
               <Typography sx={{ mb: 2 }}>
                 ✔ Precificação Automatizada
               </Typography>
+<<<<<<< HEAD
 
               <Typography sx={{ mb: 2 }}>
                 ✔ Integração IoT (Displays LCD)
@@ -335,11 +478,23 @@ export default function BemVindo() {
                 ✔ Gestão de Fluxo e Alertas
               </Typography>
 
+=======
+              <Typography sx={{ mb: 2 }}>
+                ✔ Integração IoT (Displays LCD)
+              </Typography>
+              <Typography sx={{ mb: 2 }}>
+                ✔ Gestão de Fluxo e Alertas
+              </Typography>
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
               <Typography>
                 ✔ Estorno Descomplicado
               </Typography>
             </Grid>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
             <Grid item xs={12} md={7}>
               <Box
                 component="img"
@@ -356,12 +511,20 @@ export default function BemVindo() {
         </Container>
       </Box>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
       {/* EQUIPE */}
       <Container maxWidth="lg" sx={{ py: 12 }}>
         <Typography sx={{ color: verde, fontWeight: 800 }}>
           QUEM FAZ O NUPREÇO ACONTECER
         </Typography>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
         <Typography
           sx={{
             fontSize: "2rem",
@@ -372,6 +535,10 @@ export default function BemVindo() {
           Um time comprometido com a inovação e o seu sucesso.
         </Typography>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
         <Grid container spacing={3}>
           {equipe.map((item, i) => (
             <Grid item xs={12} md={4} key={i}>
@@ -394,10 +561,18 @@ export default function BemVindo() {
                   }}
                 />
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
                 <Typography sx={{ fontWeight: 800 }}>
                   {item.nome}
                 </Typography>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
                 <Typography
                   sx={{
                     color: verde,
@@ -409,7 +584,12 @@ export default function BemVindo() {
                   {item.cargo}
                 </Typography>
 
+<<<<<<< HEAD
                 <Typography sx={{ color: "text.secondary" }}>
+=======
+
+                <Typography sx={{ color: 'text.secondary' }}>
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
                   {item.texto}
                 </Typography>
               </Card>
@@ -418,6 +598,10 @@ export default function BemVindo() {
         </Grid>
       </Container>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
       {/* APP CTA */}
       <Box sx={{ bgcolor: verde, py: 12 }}>
         <Container maxWidth="lg">
@@ -434,16 +618,29 @@ export default function BemVindo() {
                 Seu negócio na palma da mão.
               </Typography>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
               <Typography sx={{ color: "#fff", mb: 4 }}>
                 Automatize sua precificação e gerencie sua rentabilidade de
                 qualquer lugar. Escaneie o QR Code ao lado e instale o app
                 NuPreço agora mesmo.
               </Typography>
 
+<<<<<<< HEAD
               <Button
                 onClick={() => navigate("/cadastro")}
                 sx={{
                   bgcolor: "background.paper",
+=======
+
+              {/* ALTERADO PARA /cadastro */}
+              <Button
+                onClick={() => navigate("/cadastro")}
+                sx={{
+                  bgcolor: 'background.paper',
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
                   color: verde,
                   textTransform: "none",
                   px: 4,
@@ -455,6 +652,7 @@ export default function BemVindo() {
               </Button>
             </Grid>
 
+<<<<<<< HEAD
             {/* IMAGENS ALINHADAS E MAIORES */}
             <Grid item xs={12} md={6}>
               <Box
@@ -486,11 +684,37 @@ export default function BemVindo() {
                   }}
                 />
               </Box>
+=======
+
+            <Grid item xs={12} md={6}>
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={6}>
+                  <Box
+                    component="img"
+                    src="/Celular.png"
+                    sx={{ width: "130%" }}
+                  />
+                </Grid>
+
+
+                <Grid item xs={12} sm={6}>
+                  <Box
+                    component="img"
+                    src="/qrcod.png"
+                    sx={{ width: "90%" }}
+                  />
+                </Grid>
+              </Grid>
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
             </Grid>
           </Grid>
         </Container>
       </Box>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
       {/* FOOTER */}
       <Box sx={{ bgcolor: "#0A3F2A", color: "#fff", py: 8 }}>
         <Container maxWidth="lg">
@@ -500,31 +724,53 @@ export default function BemVindo() {
                 NuPreço
               </Typography>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
               <Typography>
                 Integração, automação e precisão para transformar seu negócio.
               </Typography>
             </Grid>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
             <Grid item xs={12} md={4}>
               <Typography sx={{ fontWeight: 800, mb: 2 }}>
                 Soluções
               </Typography>
+<<<<<<< HEAD
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
               <Typography>Precificação</Typography>
               <Typography>Integração IoT</Typography>
               <Typography>Gestão de Fluxo</Typography>
             </Grid>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
             <Grid item xs={12} md={4}>
               <Typography sx={{ fontWeight: 800, mb: 2 }}>
                 Contato
               </Typography>
+<<<<<<< HEAD
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
               <Typography>contato@nupreco.com.br</Typography>
               <Typography>(11) 99999-9999</Typography>
             </Grid>
           </Grid>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
           <Typography
             sx={{
               mt: 5,

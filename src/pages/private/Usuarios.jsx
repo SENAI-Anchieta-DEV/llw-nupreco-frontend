@@ -30,18 +30,25 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import SaveIcon from '@mui/icons-material/SaveOutlined';
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 import usuarioService from '../../services/usuarioService';
 import { getApiErrorMessage } from '../../services/apiResponse';
 
 
+<<<<<<< HEAD
 
 
 const initialForm = { nome: '', email: '', senha: '' };
 const SENHA_MINIMA_MENSAGEM = 'A senha deve conter no mínimo 6 caracteres.';
 
 
+=======
+const initialForm = { nome: '', email: '', senha: '' };
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 
 
 const formatarPerfil = (role) => {
@@ -51,8 +58,11 @@ const formatarPerfil = (role) => {
 };
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 const Usuarios = () => {
   const theme = useTheme();
   const [usuarios, setUsuarios] = useState([]);
@@ -66,15 +76,21 @@ const Usuarios = () => {
   const [formEdicao, setFormEdicao] = useState(initialForm);
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   const carregarUsuarios = async () => {
     setCarregando(true);
     setErro('');
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
     try {
       const data = await usuarioService.listar();
       setUsuarios(data);
@@ -86,44 +102,60 @@ const Usuarios = () => {
   };
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   useEffect(() => {
     carregarUsuarios();
   }, []);
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   const alterarCampo = (event) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   const alterarCampoEdicao = (event) => {
     const { name, value } = event.target;
     setFormEdicao((prev) => ({ ...prev, [name]: value }));
   };
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   const cadastrarFuncionario = async () => {
     setErro('');
     setSucesso('');
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
     if (!form.nome || !form.email || !form.senha) {
       setErro('Preencha nome, e-mail e senha.');
       return;
     }
 
 
+<<<<<<< HEAD
     if (form.senha.length < 6) {
       setErro(SENHA_MINIMA_MENSAGEM);
       return;
@@ -137,6 +169,11 @@ const Usuarios = () => {
 
 
 
+=======
+    setSalvando(true);
+
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
     try {
       await usuarioService.cadastrarFuncionario(form);
       setForm(initialForm);
@@ -150,8 +187,11 @@ const Usuarios = () => {
   };
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   const abrirEdicao = (usuario) => {
     setUsuarioEditando(usuario);
     setFormEdicao({
@@ -163,8 +203,11 @@ const Usuarios = () => {
   };
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   const fecharEdicao = () => {
     setModalEdicaoAberto(false);
     setUsuarioEditando(null);
@@ -172,13 +215,17 @@ const Usuarios = () => {
   };
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   const salvarEdicao = async () => {
     setErro('');
     setSucesso('');
 
 
+<<<<<<< HEAD
 
 
     if (!usuarioEditando?.id) return;
@@ -186,12 +233,18 @@ const Usuarios = () => {
 
 
 
+=======
+    if (!usuarioEditando?.id) return;
+
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
     if (!formEdicao.nome || !formEdicao.email || !formEdicao.senha) {
       setErro('Para atualizar o usuário, preencha nome, e-mail e senha.');
       return;
     }
 
 
+<<<<<<< HEAD
     if (formEdicao.senha.length < 6) {
       setErro(SENHA_MINIMA_MENSAGEM);
       return;
@@ -205,6 +258,11 @@ const Usuarios = () => {
 
 
 
+=======
+    setSalvando(true);
+
+
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
     try {
       await usuarioService.atualizar(usuarioEditando.id, formEdicao);
       fecharEdicao();
@@ -218,23 +276,32 @@ const Usuarios = () => {
   };
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   const excluirUsuario = async (usuario) => {
     setErro('');
     setSucesso('');
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
     if (usuario.role === 'GESTOR') {
       setErro('O Gestor não pode ser excluído pelo sistema.');
       return;
     }
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
     try {
       await usuarioService.excluir(usuario.id);
       setSucesso('Usuário excluído com sucesso.');
@@ -245,8 +312,11 @@ const Usuarios = () => {
   };
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100%', p: { xs: 2, sm: 3, lg: 4 }, overflowX: 'hidden' }}>
       <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
@@ -260,8 +330,11 @@ const Usuarios = () => {
         </Box>
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
         <Button
           variant="outlined"
           startIcon={<RefreshIcon />}
@@ -273,14 +346,20 @@ const Usuarios = () => {
       </Stack>
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
       {erro && <Alert severity="error" sx={{ mb: 2 }}>{erro}</Alert>}
       {sucesso && <Alert severity="success" sx={{ mb: 2 }}>{sucesso}</Alert>}
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>
           <Card sx={{ p: 3, borderRadius: '25px', border: `1px solid ${theme.palette.divider}` }}>
@@ -292,6 +371,7 @@ const Usuarios = () => {
             </Stack>
 
 
+<<<<<<< HEAD
 
 
             <Stack spacing={2}>
@@ -310,6 +390,12 @@ const Usuarios = () => {
               />
 
 
+=======
+            <Stack spacing={2}>
+              <TextField label="Nome" name="nome" value={form.nome} onChange={alterarCampo} fullWidth />
+              <TextField label="E-mail" name="email" value={form.email} onChange={alterarCampo} fullWidth />
+              <TextField label="Senha" name="senha" type="password" value={form.senha} onChange={alterarCampo} fullWidth />
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 
 
               <Button
@@ -325,8 +411,11 @@ const Usuarios = () => {
         </Grid>
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
         <Grid item xs={12} md={8}>
           <Card sx={{ p: { xs: 2, sm: 3 }, borderRadius: '25px', border: `1px solid ${theme.palette.divider}` }}>
             <Typography sx={{ color: '#128654', fontWeight: 800, mb: 2 }}>
@@ -334,8 +423,11 @@ const Usuarios = () => {
             </Typography>
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
             {carregando ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
                 <CircularProgress sx={{ color: '#128654' }} />
@@ -409,8 +501,11 @@ const Usuarios = () => {
       </Grid>
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
       <Dialog open={modalEdicaoAberto} onClose={fecharEdicao} fullWidth maxWidth="sm">
         <DialogTitle sx={{ color: '#128654', fontWeight: 800 }}>
           Editar Usuário
@@ -419,6 +514,7 @@ const Usuarios = () => {
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField label="Nome" name="nome" value={formEdicao.nome} onChange={alterarCampoEdicao} fullWidth />
             <TextField label="E-mail" name="email" value={formEdicao.email} onChange={alterarCampoEdicao} fullWidth />
+<<<<<<< HEAD
             <TextField
               label="Senha"
               name="senha"
@@ -430,6 +526,9 @@ const Usuarios = () => {
               helperText={SENHA_MINIMA_MENSAGEM}
               FormHelperTextProps={{ sx: { color: 'error.main', fontWeight: 600, mt: 0.75 } }}
             />
+=======
+            <TextField label="Senha" name="senha" type="password" value={formEdicao.senha} onChange={alterarCampoEdicao} fullWidth helperText="O backend exige senha no DTO de atualização." />
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -452,15 +551,21 @@ const Usuarios = () => {
 };
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
 export default Usuarios;
 
 
 
+<<<<<<< HEAD
 
 
 
 
 
 
+=======
+>>>>>>> e974d01e537c9df46ae1deb54207faa6b1a77f65
