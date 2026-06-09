@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
+  Divider,
   Box,
   Button,
   Card,
@@ -13,45 +14,36 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-
-
-
-
+ 
+ 
+ 
+ 
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SearchIcon from '@mui/icons-material/Search';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
-
-
-
-
+ 
+ 
+ 
+ 
 import produtoService from '../../services/produtoService';
 import iotService from '../../services/iotService';
+import displayLcdService from '../../services/displayLcdService';
 import { getApiErrorMessage } from '../../services/apiResponse';
-
-
-
-
-const etiquetasDigitais = [
-  { id: 'LCD-01', label: 'Etiqueta Digital 01' },
-  { id: 'LCD-02', label: 'Etiqueta Digital 02' },
-  { id: 'LCD-03', label: 'Etiqueta Digital 03' },
-  { id: 'LCD-04', label: 'Etiqueta Digital 04' },
-];
-
-
-
-
+ 
+ 
+ 
+ 
 const normalizarTexto = (value) => String(value ?? '').trim().toLowerCase();
-
-
-
-
+ 
+ 
+ 
+ 
 const formatMoney = (value) => Number(value || 0).toFixed(2);
-
-
-
-
+ 
+ 
+ 
+ 
 const campoPadrao = {
   '& .MuiOutlinedInput-root': {
     borderRadius: '14px',
@@ -62,44 +54,47 @@ const campoPadrao = {
     fontWeight: 800,
   },
 };
-
-
-
-
+ 
+ 
+ 
+ 
 const EtiquetaDigital = () => {
   const [produtos, setProdutos] = useState([]);
   const [buscaProduto, setBuscaProduto] = useState('');
   const [produtoSelecionado, setProdutoSelecionado] = useState(null);
   const [descricao, setDescricao] = useState('');
   const [valorEtiqueta, setValorEtiqueta] = useState('');
-  const [etiquetaDigitalId, setEtiquetaDigitalId] = useState('LCD-01');
+  const [etiquetaDigitalId, setEtiquetaDigitalId] = useState('');
+  const [etiquetasDigitais, setEtiquetasDigitais] = useState([]);
+  const [novoCodigoSerial, setNovoCodigoSerial] = useState('');
+  const [cadastrandoEtiqueta, setCadastrandoEtiqueta] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
-
-
-
-
+ 
+ 
+ 
+ 
   const produtosFiltrados = useMemo(() => {
     const termo = normalizarTexto(buscaProduto);
-
-
-
-
+ 
+ 
+ 
+ 
     if (!termo || produtoSelecionado) return [];
-
-
-
-
+ 
+ 
+ 
+ 
     return produtos
       .filter((produto) => {
         const codigo = normalizarTexto(produto.id);
         const nome = normalizarTexto(produto.nome);
-
-
-
-
+ 
+ 
+ 
+ 
         return codigo.startsWith(termo) || nome.startsWith(termo);
       })
       .sort((a, b) =>
@@ -108,47 +103,50 @@ const EtiquetaDigital = () => {
         })
       );
   }, [buscaProduto, produtos, produtoSelecionado]);
-
-
-
-
-  const carregarProdutos = async () => {
+ 
+ 
+ 
+ 
+  const carregarDados = async () => {
     setCarregando(true);
     setErro('');
-
-
-
-
+ 
     try {
-      const produtosApi = await produtoService.listar();
+      const [produtosApi, etiquetasApi] = await Promise.all([
+        produtoService.listar(),
+        displayLcdService.listar(),
+      ]);
+ 
       setProdutos(produtosApi);
+      setEtiquetasDigitais(etiquetasApi);
+ 
+      if (!etiquetaDigitalId && etiquetasApi.length > 0) {
+        setEtiquetaDigitalId(etiquetasApi[0].id);
+      }
     } catch (error) {
-      setErro(getApiErrorMessage(error, 'Não foi possível carregar a lista de produtos.'));
+      setErro(getApiErrorMessage(error, 'Não foi possível carregar os produtos e as etiquetas digitais.'));
     } finally {
       setCarregando(false);
     }
   };
-
-
-
-
+ 
   useEffect(() => {
-    carregarProdutos();
+    carregarDados();
   }, []);
-
-
-
-
+ 
+ 
+ 
+ 
   const limparSelecao = () => {
     setBuscaProduto('');
     setProdutoSelecionado(null);
     setDescricao('');
     setValorEtiqueta('');
   };
-
-
-
-
+ 
+ 
+ 
+ 
   const selecionarProduto = (produto) => {
     setErro('');
     setSucesso('');
@@ -157,70 +155,112 @@ const EtiquetaDigital = () => {
     setDescricao(produto.nome || '');
     setValorEtiqueta(formatMoney(produto.precoVenda));
   };
-
-
-
-
+ 
+ 
+ 
+ 
+ 
+  const cadastrarEtiquetaDigital = async () => {
+    setErro('');
+    setSucesso('');
+ 
+    if (!produtoSelecionado) {
+      setErro('Selecione um produto antes de cadastrar a etiqueta digital.');
+      return;
+    }
+ 
+    if (!novoCodigoSerial.trim()) {
+      setErro('Informe o código serial da etiqueta digital. Exemplo: LCD-01.');
+      return;
+    }
+ 
+    setCadastrandoEtiqueta(true);
+ 
+    try {
+      const etiquetaCriada = await displayLcdService.criar({
+        codigoSerial: novoCodigoSerial.trim(),
+        chavePublica: novoCodigoSerial.trim(),
+        ativo: true,
+        produtoId: produtoSelecionado.id,
+      });
+ 
+      const etiquetasAtualizadas = [...etiquetasDigitais, etiquetaCriada].sort((a, b) =>
+        String(a.codigoSerial || '').localeCompare(String(b.codigoSerial || ''), 'pt-BR')
+      );
+ 
+      setEtiquetasDigitais(etiquetasAtualizadas);
+      setEtiquetaDigitalId(etiquetaCriada.id);
+      setNovoCodigoSerial('');
+      setSucesso(`Etiqueta digital ${etiquetaCriada.codigoSerial} cadastrada e vinculada ao produto selecionado.`);
+    } catch (error) {
+      setErro(getApiErrorMessage(error, 'Não foi possível cadastrar a etiqueta digital.'));
+    } finally {
+      setCadastrandoEtiqueta(false);
+    }
+  };
+ 
+  const etiquetaSelecionada = etiquetasDigitais.find((etiqueta) => etiqueta.id === etiquetaDigitalId);
+ 
   const confirmarAlteracao = async () => {
     setErro('');
     setSucesso('');
-
-
-
-
+ 
+ 
+ 
+ 
     if (!produtoSelecionado) {
       setErro('Selecione um produto antes de confirmar a alteração da etiqueta digital.');
       return;
     }
-
-
-
-
+ 
+ 
+ 
+ 
     if (!descricao.trim()) {
       setErro('A descrição do produto é obrigatória.');
       return;
     }
-
-
-
-
+ 
+ 
+ 
+ 
     if (!etiquetaDigitalId) {
       setErro('Selecione o ID da etiqueta digital que será alterada.');
       return;
     }
-
-
-
-
+ 
+ 
+ 
+ 
     const valorNumerico = Number(String(valorEtiqueta).replace(',', '.'));
-
-
-
-
+ 
+ 
+ 
+ 
     if (!Number.isFinite(valorNumerico) || valorNumerico <= 0) {
       setErro('Informe um valor válido para enviar à etiqueta digital.');
       return;
     }
-
-
-
-
+ 
+ 
+ 
+ 
     setEnviando(true);
-
-
-
-
+ 
+ 
+ 
+ 
     try {
       await iotService.enviarEtiquetaDigital({
         nome: descricao.trim(),
         preco: valorNumerico,
         etiquetaDigitalId,
       });
-
-
-
-
-      setSucesso(`Informações enviadas para a ${etiquetaDigitalId} com sucesso.`);
+ 
+ 
+ 
+ 
+      setSucesso(`Informações enviadas para a ${etiquetaSelecionada?.codigoSerial || 'etiqueta digital'} com sucesso.`);
       limparSelecao();
     } catch (error) {
       setErro(getApiErrorMessage(error, 'Não foi possível enviar as informações para a etiqueta digital.'));
@@ -228,10 +268,10 @@ const EtiquetaDigital = () => {
       setEnviando(false);
     }
   };
-
-
-
-
+ 
+ 
+ 
+ 
   return (
     <Box
       sx={{
@@ -253,14 +293,14 @@ const EtiquetaDigital = () => {
             Etiqueta Digital
           </Typography>
         </Box>
-
-
-
-
+ 
+ 
+ 
+ 
         <Button
           variant="outlined"
           startIcon={<RefreshIcon />}
-          onClick={carregarProdutos}
+          onClick={carregarDados}
           sx={{
             borderColor: '#128654',
             color: '#128654',
@@ -272,16 +312,16 @@ const EtiquetaDigital = () => {
           Atualizar
         </Button>
       </Stack>
-
-
-
-
+ 
+ 
+ 
+ 
       {erro && <Alert severity="error" sx={{ mb: 2, flexShrink: 0 }}>{erro}</Alert>}
       {sucesso && <Alert severity="success" sx={{ mb: 2, flexShrink: 0 }}>{sucesso}</Alert>}
-
-
-
-
+ 
+ 
+ 
+ 
       <Grid container spacing={3} sx={{ flex: 1, minHeight: 0 }}>
         <Grid item xs={12} md={4} sx={{ minHeight: 0 }}>
           <Card
@@ -298,10 +338,10 @@ const EtiquetaDigital = () => {
             <Typography sx={{ color: '#128654', fontWeight: 900, mb: 2, flexShrink: 0 }}>
               Lista De Produtos
             </Typography>
-
-
-
-
+ 
+ 
+ 
+ 
             <TextField
               label="Buscar Por Código Ou Nome"
               value={buscaProduto}
@@ -323,10 +363,10 @@ const EtiquetaDigital = () => {
                 ),
               }}
             />
-
-
-
-
+ 
+ 
+ 
+ 
             <Paper
               elevation={0}
               sx={{
@@ -385,10 +425,10 @@ const EtiquetaDigital = () => {
             </Paper>
           </Card>
         </Grid>
-
-
-
-
+ 
+ 
+ 
+ 
         <Grid item xs={12} md={8} sx={{ minHeight: 0 }}>
           <Card
             sx={{
@@ -425,10 +465,10 @@ const EtiquetaDigital = () => {
                 </Typography>
               </Box>
             </Stack>
-
-
-
-
+ 
+ 
+ 
+ 
             <Grid container spacing={2.5} sx={{ flexShrink: 0 }}>
               <Grid item xs={12} md={6}>
                 <TextField
@@ -440,10 +480,10 @@ const EtiquetaDigital = () => {
                   helperText="Preenchido automaticamente ao selecionar um produto."
                 />
               </Grid>
-
-
-
-
+ 
+ 
+ 
+ 
               <Grid item xs={12} md={3}>
                 <TextField
                   label="Valor Da Etiqueta"
@@ -458,32 +498,68 @@ const EtiquetaDigital = () => {
                   helperText="Opcional alterar antes de enviar."
                 />
               </Grid>
-
-
-
-
+ 
+ 
+ 
+ 
               <Grid item xs={12} md={3}>
                 <TextField
                   select
-                  label="ID Da Etiqueta Digital"
+                  label="Etiqueta Digital Cadastrada"
                   value={etiquetaDigitalId}
                   onChange={(event) => setEtiquetaDigitalId(event.target.value)}
                   fullWidth
                   sx={campoPadrao}
-                  helperText="Selecione o display que será alterado."
+                  helperText="Selecione uma etiqueta cadastrada no backend."
                 >
                   {etiquetasDigitais.map((etiqueta) => (
                     <MenuItem key={etiqueta.id} value={etiqueta.id}>
-                      {etiqueta.label} - {etiqueta.id}
+                      {etiqueta.codigoSerial} {etiqueta.ativo ? '' : '- Inativa'}
                     </MenuItem>
                   ))}
+                  {etiquetasDigitais.length === 0 && (
+                    <MenuItem value="" disabled>
+                      Nenhuma etiqueta cadastrada
+                    </MenuItem>
+                  )}
                 </TextField>
               </Grid>
             </Grid>
-
-
-
-
+ 
+            <Divider sx={{ my: 2.5 }} />
+ 
+            <Grid container spacing={2.5} sx={{ flexShrink: 0 }}>
+              <Grid item xs={12} md={8}>
+                <TextField
+                  label="Código Serial Da Nova Etiqueta"
+                  value={novoCodigoSerial}
+                  onChange={(event) => setNovoCodigoSerial(event.target.value)}
+                  fullWidth
+                  sx={campoPadrao}
+                  helperText="Use o mesmo código configurado no ESP32. Exemplo: LCD-01."
+                />
+              </Grid>
+ 
+              <Grid item xs={12} md={4}>
+                <Button
+                  variant="outlined"
+                  disabled={cadastrandoEtiqueta || !produtoSelecionado}
+                  onClick={cadastrarEtiquetaDigital}
+                  fullWidth
+                  sx={{
+                    height: '56px',
+                    borderColor: '#128654',
+                    color: '#128654',
+                    textTransform: 'none',
+                    fontWeight: 900,
+                    borderRadius: '14px',
+                  }}
+                >
+                  {cadastrandoEtiqueta ? 'Cadastrando...' : 'Cadastrar Etiqueta'}
+                </Button>
+              </Grid>
+            </Grid>
+ 
             <Card
               sx={{
                 mt: 3,
@@ -497,10 +573,10 @@ const EtiquetaDigital = () => {
               <Typography sx={{ color: '#128654', fontWeight: 900, mb: 1 }}>
                 Prévia Do Envio
               </Typography>
-
-
-
-
+ 
+ 
+ 
+ 
               <Grid container spacing={2}>
                 <Grid item xs={12} md={4}>
                   <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 800 }}>
@@ -510,10 +586,10 @@ const EtiquetaDigital = () => {
                     {descricao || 'Nenhum produto selecionado'}
                   </Typography>
                 </Grid>
-
-
-
-
+ 
+ 
+ 
+ 
                 <Grid item xs={12} md={4}>
                   <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 800 }}>
                     VALOR
@@ -522,29 +598,29 @@ const EtiquetaDigital = () => {
                     R$ {formatMoney(valorEtiqueta)}
                   </Typography>
                 </Grid>
-
-
-
-
+ 
+ 
+ 
+ 
                 <Grid item xs={12} md={4}>
                   <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 800 }}>
                     ETIQUETA DIGITAL
                   </Typography>
                   <Typography sx={{ fontWeight: 900 }}>
-                    {etiquetaDigitalId}
+                    {etiquetaSelecionada?.codigoSerial || 'Nenhuma etiqueta selecionada'}
                   </Typography>
                 </Grid>
               </Grid>
             </Card>
-
-
-
-
+ 
+ 
+ 
+ 
             <Box sx={{ flex: 1, minHeight: 0 }} />
-
-
-
-
+ 
+ 
+ 
+ 
             <Stack direction="row" justifyContent="flex-end" spacing={1.5} sx={{ mt: 3, flexShrink: 0 }}>
               <Button
                 variant="outlined"
@@ -559,10 +635,10 @@ const EtiquetaDigital = () => {
               >
                 Limpar
               </Button>
-
-
-
-
+ 
+ 
+ 
+ 
               <Button
                 variant="contained"
                 startIcon={<SendOutlinedIcon />}
@@ -588,9 +664,9 @@ const EtiquetaDigital = () => {
     </Box>
   );
 };
-
-
-
-
+ 
+ 
+ 
+ 
 export default EtiquetaDigital;
 

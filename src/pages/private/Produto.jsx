@@ -21,8 +21,8 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-
-
+ 
+ 
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -30,17 +30,16 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import SaveIcon from '@mui/icons-material/Save';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import CalculateOutlinedIcon from '@mui/icons-material/CalculateOutlined';
-
-
+ 
+ 
 import { useNavigate } from 'react-router-dom';
-
-
+ 
+ 
 import produtoService from '../../services/produtoService';
 import estoqueService from '../../services/estoqueService';
-import iotService from '../../services/iotService';
 import { getApiErrorMessage } from '../../services/apiResponse';
-
-
+ 
+ 
 const initialForm = {
   idInterno: null,
   id: '',
@@ -51,51 +50,51 @@ const initialForm = {
   margemReal: '',
   origemPrecificacao: 'SUGERIDO',
 };
-
-
+ 
+ 
 const toNumber = (value) => {
   const number = Number(String(value ?? '').replace(',', '.'));
   return Number.isFinite(number) ? number : 0;
 };
-
-
+ 
+ 
 const formatMoney = (value) => {
   return Number(value || 0).toFixed(2);
 };
-
-
+ 
+ 
 const calcularPrecoSugerido = (custo) => {
   const custoNumerico = toNumber(custo);
   if (custoNumerico <= 0) return 0;
   return custoNumerico + custoNumerico * 0.5;
 };
-
-
+ 
+ 
 const calcularMargemPeloPreco = (custo, precoVenda) => {
   const custoNumerico = toNumber(custo);
   const precoNumerico = toNumber(precoVenda);
-
-
+ 
+ 
   if (custoNumerico <= 0 || precoNumerico <= 0) return '';
   return ((precoNumerico - custoNumerico) / custoNumerico) * 100;
 };
-
-
+ 
+ 
 const calcularPrecoPelaMargem = (custo, margem) => {
   const custoNumerico = toNumber(custo);
   const margemNumerica = toNumber(margem);
-
-
+ 
+ 
   if (custoNumerico <= 0 || margem === '') return '';
   return custoNumerico + (custoNumerico * margemNumerica) / 100;
 };
-
-
+ 
+ 
 const Produto = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-
-
+ 
+ 
   const [produtos, setProdutos] = useState([]);
   const [itensEstoque, setItensEstoque] = useState([]);
   const [form, setForm] = useState(initialForm);
@@ -103,13 +102,13 @@ const Produto = () => {
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
-
-
+ 
+ 
   const precoSugerido = useMemo(() => {
     return calcularPrecoSugerido(form.custoProduto);
   }, [form.custoProduto]);
-
-
+ 
+ 
   const produtosComEstoque = useMemo(() => {
     return produtos
       .map((produto) => {
@@ -117,8 +116,8 @@ const Produto = () => {
         const custoProduto = toNumber(produto.custoProduto);
         const precoVenda = toNumber(produto.precoVenda);
         const margemReal = custoProduto > 0 ? ((precoVenda - custoProduto) / custoProduto) * 100 : 0;
-
-
+ 
+ 
         return {
           ...produto,
           qtd: itemEstoque?.quantidade ?? produto.qtd ?? 0,
@@ -133,20 +132,20 @@ const Produto = () => {
         })
       );
   }, [produtos, itensEstoque]);
-
-
+ 
+ 
   const carregarDados = async () => {
     setCarregando(true);
     setErro('');
-
-
+ 
+ 
     try {
       const [produtosApi, estoqueApi] = await Promise.all([
         produtoService.listar(),
         estoqueService.listarItens(),
       ]);
-
-
+ 
+ 
       setProdutos(produtosApi);
       setItensEstoque(estoqueApi);
     } catch (error) {
@@ -155,96 +154,96 @@ const Produto = () => {
       setCarregando(false);
     }
   };
-
-
+ 
+ 
   useEffect(() => {
     carregarDados();
   }, []);
-
-
+ 
+ 
   const limparCampos = () => {
     setForm(initialForm);
     setErro('');
     setSucesso('');
   };
-
-
+ 
+ 
   const alterarCampo = (event) => {
     const { name, value } = event.target;
-
-
+ 
+ 
     setForm((prev) => {
       const next = { ...prev, [name]: value };
-
-
+ 
+ 
       if (name === 'custoProduto') {
         if (prev.origemPrecificacao === 'PRECO' && prev.precoVendaManual !== '') {
           next.margemReal = calcularMargemPeloPreco(value, prev.precoVendaManual);
         }
-
-
+ 
+ 
         if (prev.origemPrecificacao === 'MARGEM' && prev.margemReal !== '') {
           next.precoVendaManual = calcularPrecoPelaMargem(value, prev.margemReal);
         }
-
-
+ 
+ 
         return next;
       }
-
-
+ 
+ 
       if (name === 'precoVendaManual') {
         next.origemPrecificacao = 'PRECO';
         next.margemReal = value === '' ? '' : calcularMargemPeloPreco(prev.custoProduto, value);
         return next;
       }
-
-
+ 
+ 
       if (name === 'margemReal') {
         next.origemPrecificacao = 'MARGEM';
         next.precoVendaManual = value === '' ? '' : calcularPrecoPelaMargem(prev.custoProduto, value);
         return next;
       }
-
-
+ 
+ 
       return next;
     });
   };
-
-
+ 
+ 
   const validarFormulario = () => {
     if (!form.id || !form.nome || !form.custoProduto || form.qtd === '') {
       return 'Preencha quantidade inicial, código/EAN, nome do produto e valor de custo.';
     }
-
-
+ 
+ 
     if (toNumber(form.custoProduto) <= 0) {
       return 'O valor de custo deve ser maior que zero.';
     }
-
-
+ 
+ 
     if (toNumber(form.qtd) < 0) {
       return 'A quantidade inicial não pode ser negativa.';
     }
-
-
+ 
+ 
     if (form.precoVendaManual !== '' && toNumber(form.precoVendaManual) < toNumber(form.custoProduto)) {
       return 'O preço de venda não pode ser menor que o valor de custo.';
     }
-
-
+ 
+ 
     if (form.margemReal !== '' && toNumber(form.margemReal) < 0) {
       return 'A margem real não pode ser negativa.';
     }
-
-
+ 
+ 
     return null;
   };
-
-
+ 
+ 
   const montarProdutoParaApi = () => {
     const custoProduto = toNumber(form.custoProduto);
-
-
+ 
+ 
     if (form.origemPrecificacao === 'PRECO' && form.precoVendaManual !== '') {
       return {
         id: form.id,
@@ -255,11 +254,11 @@ const Produto = () => {
         lucroValor: toNumber(form.precoVendaManual) - custoProduto,
       };
     }
-
-
+ 
+ 
     const margemLucro = form.margemReal !== '' ? toNumber(form.margemReal) : 50;
-
-
+ 
+ 
     return {
       id: form.id,
       nome: form.nome,
@@ -269,53 +268,53 @@ const Produto = () => {
       lucroValor: '',
     };
   };
-
-
+ 
+ 
 const salvarProduto = async () => {
   setErro('');
   setSucesso('');
-
-
+ 
+ 
   const mensagemErro = validarFormulario();
-
-
+ 
+ 
   if (mensagemErro) {
     setErro(mensagemErro);
     return;
   }
-
-
+ 
+ 
   setSalvando(true);
-
-
+ 
+ 
   try {
     const produtoParaSalvar = montarProdutoParaApi();
-
-
+ 
+ 
     const produtoSalvo = form.idInterno
       ? await produtoService.atualizar(form.idInterno, produtoParaSalvar)
       : await produtoService.criar(produtoParaSalvar);
-
-
+ 
+ 
     const quantidadeDesejada = toNumber(form.qtd);
-
-
+ 
+ 
     setProdutos((prev) => {
       const semProdutoAtual = prev.filter((produto) => produto.id !== produtoSalvo.id);
-
-
+ 
+ 
       return [...semProdutoAtual, produtoSalvo].sort((a, b) =>
         String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR', {
           sensitivity: 'base',
         })
       );
     });
-
-
+ 
+ 
     setItensEstoque((prev) => {
       const semEstoqueAtual = prev.filter((item) => item.produtoId !== produtoSalvo.id);
-
-
+ 
+ 
       return [
         ...semEstoqueAtual,
         {
@@ -324,50 +323,44 @@ const salvarProduto = async () => {
         },
       ];
     });
-
-
+ 
+ 
     setForm({ ...initialForm });
     setSucesso('Produto salvo com sucesso.');
     setSalvando(false);
-
-
+ 
+ 
     try {
       const estoqueAtual = itensEstoque.find((item) => item.produtoId === produtoSalvo.id);
       const quantidadeAtual = Number(estoqueAtual?.quantidade ?? 0);
       const diferenca = quantidadeDesejada - quantidadeAtual;
-
-
+ 
+ 
       if (diferenca > 0) {
         await estoqueService.adicionar(produtoSalvo.id, diferenca);
       }
-
-
+ 
+ 
       if (diferenca < 0) {
         await estoqueService.remover(produtoSalvo.id, Math.abs(diferenca));
       }
     } catch {
       setErro('Produto salvo, mas não foi possível atualizar o estoque automaticamente.');
     }
-
-
-    try {
-      await iotService.enviar(produtoSalvo.nome, produtoSalvo.precoVenda);
-    } catch {
-      // A falha no display não deve impedir o cadastro do produto.
-    }
+ 
   } catch (error) {
     setErro(getApiErrorMessage(error, 'Não foi possível salvar o produto.'));
     setSalvando(false);
   }
 };
-
-
-
-
+ 
+ 
+ 
+ 
   const editarProduto = (produto) => {
     const margemReal = calcularMargemPeloPreco(produto.custoProduto, produto.precoVenda);
-
-
+ 
+ 
     setForm({
       idInterno: produto.id,
       id: produto.id,
@@ -379,28 +372,28 @@ const salvarProduto = async () => {
       origemPrecificacao: produto.tipoPrecificacao === 'VALOR_FIXO' ? 'PRECO' : 'MARGEM',
     });
   };
-
-
+ 
+ 
   const excluirProduto = async (produto) => {
     setErro('');
     setSucesso('');
-
-
+ 
+ 
     try {
       await produtoService.excluir(produto.id);
-
-
+ 
+ 
       setProdutos((prev) => prev.filter((item) => item.id !== produto.id));
       setItensEstoque((prev) => prev.filter((item) => item.produtoId !== produto.id));
-
-
+ 
+ 
       setSucesso('Produto excluído com sucesso.');
     } catch (error) {
       setErro(getApiErrorMessage(error, 'Não foi possível excluir o produto.'));
     }
   };
-
-
+ 
+ 
   const campoPadrao = {
     '& .MuiOutlinedInput-root': {
       height: 52,
@@ -415,8 +408,8 @@ const salvarProduto = async () => {
       textTransform: 'uppercase',
     },
   };
-
-
+ 
+ 
   const ActionCard = ({ label, icon, onClick }) => (
     <Card
       onClick={onClick}
@@ -444,8 +437,8 @@ const salvarProduto = async () => {
       {icon}
     </Card>
   );
-
-
+ 
+ 
   return (
     <Box
       sx={{
@@ -464,8 +457,8 @@ const salvarProduto = async () => {
             CONTROLE DE PRODUTOS
           </Typography>
         </Box>
-
-
+ 
+ 
         <Button
           variant="outlined"
           startIcon={<RefreshIcon />}
@@ -481,28 +474,28 @@ const salvarProduto = async () => {
           Atualizar
         </Button>
       </Stack>
-
-
+ 
+ 
       <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: 3, flexShrink: 0 }}>
         <ActionCard
           label="NOVO PRODUTO"
           onClick={limparCampos}
           icon={<AddCircleOutlineIcon sx={{ color: '#008653', fontSize: '2.6rem' }} />}
         />
-
-
+ 
+ 
         <ActionCard
           label="VER ESTOQUE"
           onClick={() => navigate('/estoque')}
           icon={<Inventory2OutlinedIcon sx={{ color: '#1976D2', fontSize: '2.6rem' }} />}
         />
       </Stack>
-
-
+ 
+ 
       {erro && <Alert severity="error" sx={{ mb: 2, flexShrink: 0 }}>{erro}</Alert>}
       {sucesso && <Alert severity="success" sx={{ mb: 2, flexShrink: 0 }}>{sucesso}</Alert>}
-
-
+ 
+ 
       <Card
         sx={{
           p: { xs: 2.5, lg: 3.5 },
@@ -516,8 +509,8 @@ const salvarProduto = async () => {
         <Typography sx={{ color: '#008653', fontWeight: 900, mb: 3 }}>
           {form.idInterno ? 'CADASTRO DE PRODUTO / EDITANDO PRODUTO' : 'CADASTRO DE NOVO PRODUTO'}
         </Typography>
-
-
+ 
+ 
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} md={1.4}>
             <TextField
@@ -531,8 +524,8 @@ const salvarProduto = async () => {
               InputLabelProps={{ shrink: true }}
             />
           </Grid>
-
-
+ 
+ 
           <Grid item xs={12} md={2}>
             <TextField
               label="CÓDIGO / EAN"
@@ -545,8 +538,8 @@ const salvarProduto = async () => {
               InputLabelProps={{ shrink: true }}
             />
           </Grid>
-
-
+ 
+ 
           <Grid item xs={12} md={2.2}>
             <TextField
               label="NOME DO PRODUTO"
@@ -558,8 +551,8 @@ const salvarProduto = async () => {
               InputLabelProps={{ shrink: true }}
             />
           </Grid>
-
-
+ 
+ 
           <Grid item xs={12} md={1.8}>
             <TextField
               label="VALOR DE CUSTO"
@@ -575,8 +568,8 @@ const salvarProduto = async () => {
               }}
             />
           </Grid>
-
-
+ 
+ 
           <Grid item xs={12} md={1.8}>
             <TextField
               label="SUGERIDO (+50%)"
@@ -587,8 +580,8 @@ const salvarProduto = async () => {
               InputLabelProps={{ shrink: true }}
             />
           </Grid>
-
-
+ 
+ 
           <Grid item xs={12} md={1.8}>
             <TextField
               label="PREÇO DE VENDA"
@@ -604,8 +597,8 @@ const salvarProduto = async () => {
               }}
             />
           </Grid>
-
-
+ 
+ 
           <Grid item xs={12} md={1.6}>
             <TextField
               label="MARGEM REAL"
@@ -621,8 +614,8 @@ const salvarProduto = async () => {
               }}
             />
           </Grid>
-
-
+ 
+ 
           <Grid item xs={12} md={0.4}>
             <Tooltip title="O sistema calcula automaticamente preço pela margem ou margem pelo preço.">
               <Box
@@ -642,8 +635,8 @@ const salvarProduto = async () => {
             </Tooltip>
           </Grid>
         </Grid>
-
-
+ 
+ 
         <Stack direction="row" justifyContent="flex-end" sx={{ mt: 3 }}>
           <Button
             variant="contained"
@@ -665,8 +658,8 @@ const salvarProduto = async () => {
           </Button>
         </Stack>
       </Card>
-
-
+ 
+ 
       <Card
         sx={{
           p: { xs: 2.5, lg: 3 },
@@ -682,8 +675,8 @@ const salvarProduto = async () => {
         <Typography sx={{ color: '#008653', fontWeight: 900, mb: 2, flexShrink: 0 }}>
           PRODUTOS CADASTRADOS
         </Typography>
-
-
+ 
+ 
         {carregando ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
             <CircularProgress sx={{ color: '#128654' }} />
@@ -714,8 +707,8 @@ const salvarProduto = async () => {
                   <TableCell align="right" sx={{ fontWeight: 900, bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(18,134,84,0.14)' : '#F6FBF8' }}>Ações</TableCell>
                 </TableRow>
               </TableHead>
-
-
+ 
+ 
               <TableBody>
                 {produtosComEstoque.length === 0 ? (
                   <TableRow>
@@ -742,8 +735,8 @@ const salvarProduto = async () => {
                             <EditOutlinedIcon sx={{ color: '#F4B000' }} />
                           </IconButton>
                         </Tooltip>
-
-
+ 
+ 
                         <Tooltip title="Excluir Produto">
                           <IconButton onClick={() => excluirProduto(produto)}>
                             <DeleteOutlineIcon sx={{ color: '#C62828' }} />
@@ -761,13 +754,14 @@ const salvarProduto = async () => {
     </Box>
   );
 };
-
-
+ 
+ 
 export default Produto;
-
-
-
-
-
-
-
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
